@@ -51,6 +51,13 @@
   transition: all 0.4s ease;
 }
 
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
 @layer base {
   body {

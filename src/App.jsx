@@ -1,8 +1,9 @@
 import MainLayout from './layouts/MainLayout';
+import Home from './pages/Home';
 function App() {
   return (
     <MainLayout>
-      <h1 className="text-white text-4xl font-bold">Vitrine DesapegaÊ</h1>
+      <Home />
     </MainLayout>
   );
 }
