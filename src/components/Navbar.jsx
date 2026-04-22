@@ -7,11 +7,15 @@ import BarraPesquisa from './BarraPesquisa';
 const Navbar = () => {
   return (
     <nav className="w-full h-20 
-                    bg-[#080810]/90 backdrop-blur-md
+                    /* Fundo Roxo Escuro Profundo com Glassmorphism */
+                    bg-[#0a0a1a]/95 backdrop-blur-xl
                     px-10 
-                    border-b border-white/5 
+                    /* Borda inferior com brilho roxo muito sutil */
+                    border-b border-liquid-purple/15
                     sticky top-0 z-[100] 
-                    flex items-center justify-between">
+                    flex items-center justify-between
+                    /* Sombra para dar profundidade sobre o conteúdo */
+                    shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
       
       {/* 1. Lado Esquerdo: Logo */}
       <div className="flex-shrink-0">
