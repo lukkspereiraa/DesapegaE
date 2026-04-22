@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  /* Paleta Oficial DesapegaÊ Cedro */
+  --color-deep-black: #05050a;
+  --color-dark-navy: #0f172a;
+  --color-pure-white: #ffffff;
+  --color-slate-glass: #94a3b8;
+  
+  /* Variantes de Roxo */
+  --color-liquid-purple: #a855f7;
+  --color-liquid-light: #c084fc;
+  --color-agressive-purple: #bf36ff;
+  
+  /* Azul Elétrico */
+  --color-electric-blue: #6366f1;
+}
+
+@utility glass-cedro-manual {
+  background-color: rgba(191, 54, 255, 0.05); 
+  
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  
+  box-shadow: 
+    inset 0 0 15px rgba(191, 54, 255, 0.2), 
+    0 8px 25px rgba(0, 0, 0, 0.5);
+    
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@utility text-neon-purple {
+  color: #A855F7; 
+  text-shadow: 0 0 12px rgba(168, 85, 247, 0.7),
+               0 0 25px rgba(168, 85, 247, 0.3);
+}
+
+@utility glass-search-liquid {
+  background-color: rgba(255, 255, 255, 0.02); 
+  
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    
+  border-radius: 9999px;
+  transition: all 0.4s ease;
+}
+
+
+@layer base {
+  body {
+    background-color: var(--color-deep-black);
+    color: white;
+    -webkit-font-smoothing: antialiased;
+  }
+}
