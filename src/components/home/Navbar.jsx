@@ -1,7 +1,7 @@
 import React from 'react';
 import BrandLogo from './Logo';
-import BotaoGenerico from './BotaoGenerico';
-import UserAvatar from './UserAvatar';
+import BotaoGenerico from '../BotaoGenerico';
+import UserAvatar from '../UserAvatar';
 import BarraPesquisa from './BarraPesquisa';
 
 const Navbar = () => {
@@ -16,7 +16,7 @@ const Navbar = () => {
                     flex items-center justify-between
                     /* Sombra para dar profundidade sobre o conteúdo */
                     shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-      
+
       {/* 1. Lado Esquerdo: Logo */}
       <div className="shrink-0">
         <BrandLogo cidade="Cedro" />
@@ -32,7 +32,7 @@ const Navbar = () => {
         <BotaoGenerico onClick={() => console.log("Anunciar!")}>
           Anunciar agora
         </BotaoGenerico>
-    
+
         <div className="w-px h-6 bg-white/10 mx-1" />
 
         <UserAvatar />

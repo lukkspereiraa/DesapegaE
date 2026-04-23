@@ -3,21 +3,21 @@ import { X } from 'lucide-react';
 import BotaoFiltroMestre from './BotaoFiltroMestre';
 import ModalFiltros from './ModalFiltros';
 
-const FiltroCategorias = ({ 
-  onAbrirFiltros, 
-  isModalOpen,   
-  onClose,       
-  filtrosAtivos = [], 
+const FiltroCategorias = ({
+  onAbrirFiltros,
+  isModalOpen,
+  onClose,
+  filtrosAtivos = [],
   onRemoveFiltro,
-  setFiltrosAtivos 
+  setFiltrosAtivos
 }) => {
   return (
     <div className="w-full py-6 flex items-center gap-4 h-fit">
-      
+
       <div className="relative flex items-center justify-center">
         <BotaoFiltroMestre onClick={onAbrirFiltros} />
-        <ModalFiltros 
-          isOpen={isModalOpen} 
+        <ModalFiltros
+          isOpen={isModalOpen}
           onClose={onClose}
           filtrosAtivos={filtrosAtivos}
           setFiltrosAtivos={setFiltrosAtivos}
@@ -26,8 +26,8 @@ const FiltroCategorias = ({
 
       <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1 flex-1">
         {filtrosAtivos.map((filtro) => (
-          <div 
-            key={filtro} 
+          <div
+            key={filtro}
             className="flex items-center gap-2 px-4 py-1.5 
                        bg-liquid-purple/10 border border-liquid-purple/30 
                        rounded-full whitespace-nowrap animate-in fade-in zoom-in duration-300"
@@ -35,8 +35,8 @@ const FiltroCategorias = ({
             <span className="text-[11px] font-black text-white uppercase tracking-wider">
               {filtro}
             </span>
-            
-            <button 
+
+            <button
               onClick={() => onRemoveFiltro(filtro)}
               className="text-white/40 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
             >
@@ -46,7 +46,7 @@ const FiltroCategorias = ({
         ))}
 
         {filtrosAtivos.length > 0 && (
-          <button 
+          <button
             onClick={() => onRemoveFiltro('all')}
             className="text-[10px] font-black text-white/30 hover:text-white 
                        uppercase tracking-widest ml-2 whitespace-nowrap cursor-pointer

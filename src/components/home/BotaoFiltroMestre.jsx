@@ -1,6 +1,6 @@
 import React from 'react';
 import { Filter } from 'lucide-react';
-import BotaoGenerico from './BotaoGenerico';
+import BotaoGenerico from '../BotaoGenerico';
 
 const BotaoFiltroMestre = ({ onClick }) => {
   return (
@@ -15,7 +15,7 @@ const BotaoFiltroMestre = ({ onClick }) => {
       <BotaoGenerico onClick={onClick}>
         <div className="flex items-center gap-2.5">
           <Filter size={18} className="text-white/90" />
-          
+
           <span className="uppercase text-[12px] font-black tracking-widest whitespace-nowrap">
             Filtros
           </span>

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import BotaoFiltroMestre from '../components/BotaoFiltroMestre';
-import ModalFiltros from '../components/ModalFiltros';
-import CardProduto from '../components/CardProduto'; 
+import BotaoFiltroMestre from '../components/home/BotaoFiltroMestre';
+import ModalFiltros from '../components/home/ModalFiltros';
+import CardProduto from '../components/home/CardProduto';
 
-import { 
-  X, Shirt, Armchair, Tv, LayoutGrid, 
-  Sparkles, History, Clock, DollarSign 
+import {
+  X, Shirt, Armchair, Tv, LayoutGrid,
+  Sparkles, History, Clock, DollarSign
 } from 'lucide-react';
 
 const iconesFiltros = {
@@ -19,33 +19,33 @@ const iconesFiltros = {
 };
 
 const produtosExemplo = [
-  { 
-    id: 1, 
-    preco: 2500, 
-    titulo: "iPhone 13 Pro Max - 256GB Grafite", 
-    localizacao: "Centro, Cedro", 
-    imagem: "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=400&q=80" 
+  {
+    id: 1,
+    preco: 2500,
+    titulo: "iPhone 13 Pro Max - 256GB Grafite",
+    localizacao: "Centro, Cedro",
+    imagem: "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=400&q=80"
   },
-  { 
-    id: 2, 
-    preco: 450, 
-    titulo: "Cadeira Gamer Reclinável Preta", 
-    localizacao: "Vila Nova, Cedro", 
-    imagem: "https://m.media-amazon.com/images/I/61H3dhK2+BL._AC_SY300_SX300_QL70_ML2_.jpg" 
+  {
+    id: 2,
+    preco: 450,
+    titulo: "Cadeira Gamer Reclinável Preta",
+    localizacao: "Vila Nova, Cedro",
+    imagem: "https://m.media-amazon.com/images/I/61H3dhK2+BL._AC_SY300_SX300_QL70_ML2_.jpg"
   },
-  { 
-    id: 3, 
-    preco: 120, 
-    titulo: "Tênis Esportivo Running - Tam 41", 
-    localizacao: "Pista, Cedro", 
-    imagem: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" 
+  {
+    id: 3,
+    preco: 120,
+    titulo: "Tênis Esportivo Running - Tam 41",
+    localizacao: "Pista, Cedro",
+    imagem: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80"
   },
-  { 
-    id: 4, 
-    preco: 3200, 
-    titulo: "Smart TV 4K 55' Samsung Neo QLED", 
-    localizacao: "Centro, Cedro", 
-    imagem: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=400&q=80" 
+  {
+    id: 4,
+    preco: 3200,
+    titulo: "Smart TV 4K 55' Samsung Neo QLED",
+    localizacao: "Centro, Cedro",
+    imagem: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?auto=format&fit=crop&w=400&q=80"
   },
 ];
 
@@ -60,14 +60,14 @@ const Home = () => {
 
   return (
     <div className="container mx-auto px-6 py-8">
-      
+
       {/* 1. SEÇÃO DE FILTROS */}
       <div className="w-full py-6 flex items-center gap-4">
         <div className="relative">
           <BotaoFiltroMestre onClick={() => setIsModalOpen(!isModalOpen)} />
-          
-          <ModalFiltros 
-            isOpen={isModalOpen} 
+
+          <ModalFiltros
+            isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             filtrosAtivos={filtrosAtivos}
             setFiltrosAtivos={setFiltrosAtivos}
@@ -104,11 +104,12 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 2. GRID DE PRODUTOS (A parte que faltava) */}
+      {/* 2. GRID DE PRODUTOS CORRIGIDO */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {produtosExemplo.map((produto) => (
-          <CardProduto 
+          <CardProduto
             key={produto.id}
+            id={produto.id} 
             imagem={produto.imagem}
             preco={produto.preco}
             titulo={produto.titulo}

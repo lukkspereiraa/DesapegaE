@@ -13,21 +13,23 @@ const BotaoGenerico = ({
   };
 
   return (
-    <div className={`relative group flex items-center justify-center ${className}`}>
+    <div className={`relative group inline-block ${className}`}>
 
-      <div className={`absolute -inset-1 bg-gradient-to-r ${variants[variant]} rounded-full blur-lg opacity-20 group-hover:opacity-60 transition-opacity duration-500 -z-10`} />
+      <div className={`absolute -inset-1 bg-linear-to-r ${variants[variant]} rounded-full blur-lg opacity-20 group-hover:opacity-60 transition-opacity duration-500 -z-10`} />
       
       <button 
         onClick={onClick}
         className={`relative 
-                   px-10 py-2 
+                   px-6 py-2.5 
                    rounded-full 
-                   text-[13px] font-black text-white uppercase tracking-[0.1em]
-                   bg-gradient-to-r ${variants[variant]}
+                   text-[13px] font-black text-white uppercase tracking-widest
+                   bg-linear-to-r ${variants[variant]}
                    transition-all duration-300 ease-in-out
                    hover:scale-[1.05]
                    active:scale-95
-                   cursor-pointer`}
+                   cursor-pointer
+                   /* ADICIONEI ISSO AQUI EMBAIXO */
+                   flex items-center justify-center gap-2 whitespace-nowrap`}
       >
         {children}
       </button>
