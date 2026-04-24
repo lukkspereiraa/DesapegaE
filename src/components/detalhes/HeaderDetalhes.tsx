@@ -3,16 +3,20 @@ import { ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BotaoGenerico from '../BotaoGenerico';
 
-const HeaderDetalhes = ({ tituloProduto }) => {
+interface HeaderDetalhesProps {
+  tituloProduto: string;
+}
+
+const HeaderDetalhes: React.FC<HeaderDetalhesProps> = ({ tituloProduto }) => {
   const navigate = useNavigate();
 
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-8 mb-12">
-      
+
       {/* BOTÃO VOLTAR */}
-      <BotaoGenerico 
+      <BotaoGenerico
         onClick={() => navigate(-1)}
-        className="px-6 py-2.5" 
+        className="px-6 py-2.5"
       >
         <ChevronLeft size={16} strokeWidth={2.5} />
         <span className="font-black">Voltar</span>
@@ -21,17 +25,17 @@ const HeaderDetalhes = ({ tituloProduto }) => {
       <nav className="flex items-center gap-3 overflow-hidden">
         {/* Itens Secundários */}
         <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 whitespace-nowrap">
-          <span 
-            className="hover:text-white transition-colors cursor-pointer" 
+          <span
+            className="hover:text-white transition-colors cursor-pointer"
             onClick={() => navigate('/')}
           >
             Início
-          </span> 
-          <span className="text-white/10 text-xs">•</span> 
+          </span>
+          <span className="text-white/10 text-xs">•</span>
           <span className="hover:text-white transition-colors cursor-pointer">
             Produtos
-          </span> 
-          <span className="text-white/10 text-xs">•</span> 
+          </span>
+          <span className="text-white/10 text-xs">•</span>
         </div>
 
         {/* Item Atual */}
@@ -39,7 +43,7 @@ const HeaderDetalhes = ({ tituloProduto }) => {
           {tituloProduto}
         </span>
       </nav>
-      
+
     </div>
   );
 };

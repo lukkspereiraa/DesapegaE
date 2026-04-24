@@ -7,15 +7,23 @@ import InfoProduto from '../components/detalhes/InfoProduto';
 import CardVendedor from '../components/detalhes/CardVendedor';
 import AcoesProduto from '../components/detalhes/AcoesProduto';
 
-const produtosExemplo = [
+interface Produto {
+  id: number;
+  preco: number;
+  titulo: string;
+  localizacao: string;
+  imagem: string;
+}
+
+const produtosExemplo: Produto[] = [
   { id: 1, preco: 2500, titulo: "iPhone 13 Pro Max - 256GB Grafite", localizacao: "Centro, Cedro", imagem: "https://images.pexels.com/photos/12794533/pexels-photo-12794533.jpeg?auto=compress&cs=tinysrgb&w=800" },
   { id: 2, preco: 450, titulo: "Cadeira Gamer Reclinável Preta", localizacao: "Vila Nova, Cedro", imagem: "https://images.pexels.com/photos/7194634/pexels-photo-7194634.jpeg?auto=compress&cs=tinysrgb&w=800" },
   { id: 3, preco: 120, titulo: "Tênis Esportivo Running - Tam 41", localizacao: "Pista, Cedro", imagem: "https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg?auto=compress&cs=tinysrgb&w=800" },
   { id: 4, preco: 3200, titulo: "Smart TV 4K 55' Samsung Neo QLED", localizacao: "Centro, Cedro", imagem: "https://images.pexels.com/photos/6976094/pexels-photo-6976094.jpeg?auto=compress&cs=tinysrgb&w=800" },
 ];
 
-const DetalheProduto = () => {
-  const { id } = useParams();
+const DetalheProduto: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,27 +45,27 @@ const DetalheProduto = () => {
 
   return (
     <div className="relative min-h-screen bg-[#08080c] text-white selection:bg-electric-blue overflow-hidden pb-12 font-sans">
-   
+
       <div className="absolute top-[-10%] left-[-10%] w-125 h-125 bg-liquid-purple/25 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-5%] w-100 h-100 bg-electric-blue/20 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="relative z-10 p-4 md:p-6 max-w-287.5 mx-auto">
-        
+
         <div className="mb-2">
           <HeaderDetalhes tituloProduto={produto.titulo} />
         </div>
 
         <div className="bg-[#101018]/70 border border-white/10 border-t-white/30 border-l-white/30 rounded-4xl p-6 md:p-8 backdrop-blur-3xl shadow-[0_40px_80px_rgba(0,0,0,0.8)] flex flex-col lg:flex-row gap-8 animate-in fade-in zoom-in duration-700 items-start">
-          
+
           <div className="w-full lg:w-[53%] shrink-0">
-            <GaleriaProduto 
-              imagemPrincipal={produto.imagem} 
-              titulo={produto.titulo} 
+            <GaleriaProduto
+              imagemPrincipal={produto.imagem}
+              titulo={produto.titulo}
             />
           </div>
 
           <div className="w-full lg:flex-1 flex flex-col pt-0">
-            <InfoProduto 
+            <InfoProduto
               titulo={produto.titulo}
               preco={produto.preco}
               localizacao={produto.localizacao}

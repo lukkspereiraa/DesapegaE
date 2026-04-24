@@ -1,10 +1,10 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
 
-const AcoesProduto = () => {
+const AcoesProduto: React.FC = () => {
   return (
     <div className="flex flex-col gap-3 mt-6 w-full">
-      
+
       {/* BOTÃO CHAT */}
       <button className="w-full py-4 bg-linear-to-r from-liquid-purple to-electric-blue rounded-2xl transition-all hover:brightness-110 shadow-[0_10px_20px_rgba(151,71,255,0.3)] cursor-pointer">
         <span className="font-black text-white text-base">

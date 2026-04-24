@@ -1,7 +1,11 @@
 import React from 'react';
 import Navbar from '../components/home/Navbar';
 
-const MainLayout = ({ children }) => {
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="relative min-h-screen w-full bg-deep-black overflow-x-hidden">
 

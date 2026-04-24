@@ -1,7 +1,11 @@
 import React from 'react';
 import SeloCidade from './SeloCidade';
 
-const Logo = ({ cidade = "Cedro" }) => {
+interface LogoProps {
+  cidade?: string;
+}
+
+const Logo: React.FC<LogoProps> = ({ cidade = "Cedro" }) => {
   return (
     <div className="flex items-center gap-3 group cursor-pointer">
       <h1 className="text-2xl font-black tracking-tighter text-white">

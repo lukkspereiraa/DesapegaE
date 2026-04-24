@@ -1,16 +1,24 @@
 import React from 'react';
 import { Star } from 'lucide-react';
 
-const CardVendedor = ({ nome = "Lucas Pereira", vendas = "12" }) => {
+interface CardVendedorProps {
+  nome?: string;
+  vendas?: string;
+}
+
+const CardVendedor: React.FC<CardVendedorProps> = ({
+  nome = "Lucas Pereira",
+  vendas = "12",
+}) => {
   return (
     <div className="flex items-center gap-5 py-6 mt-4 border-t border-white/5">
       {/* FOTO COM GLOW ROXO SUTIL */}
       <div className="relative shrink-0">
         <div className="w-16 h-16 rounded-full p-0.5 bg-linear-to-tr from-liquid-purple to-electric-blue shadow-[0_0_15px_rgba(151,71,255,0.3)]">
           <div className="w-full h-full rounded-full bg-[#050508] p-0.5">
-            <img 
-              src="https://github.com/lucas-pereira.png" 
-              className="w-full h-full rounded-full object-cover" 
+            <img
+              src="https://github.com/lucas-pereira.png"
+              className="w-full h-full rounded-full object-cover"
               alt={nome}
             />
           </div>
@@ -22,7 +30,7 @@ const CardVendedor = ({ nome = "Lucas Pereira", vendas = "12" }) => {
         <h4 className="text-xl font-black text-white tracking-tight leading-none">
           {nome}
         </h4>
-        
+
         <div className="flex items-center gap-2">
           {/* ESTRELAS AMARELAS */}
           <div className="flex items-center gap-0.5 text-yellow-400">
@@ -30,7 +38,7 @@ const CardVendedor = ({ nome = "Lucas Pereira", vendas = "12" }) => {
               <Star key={i} size={14} fill="currentColor" stroke="none" />
             ))}
           </div>
-          
+
           {/* VENDAS */}
           <span className="text-white/40 text-[13px] font-bold">
             ({vendas} vendas)

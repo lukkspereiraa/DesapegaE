@@ -5,20 +5,29 @@ import CardProduto from '../components/home/CardProduto';
 
 import {
   X, Shirt, Armchair, Tv, LayoutGrid,
-  Sparkles, History, Clock, DollarSign
+  Sparkles, History, Clock, DollarSign,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const iconesFiltros = {
+const iconesFiltros: Record<string, LucideIcon> = {
   "Roupas": Shirt,
   "Móveis": Armchair,
   "Eletrônicos": Tv,
   "Todos": LayoutGrid,
   "Novo": Sparkles,
   "Usado": History,
-  "Seminovo": Clock
+  "Seminovo": Clock,
 };
 
-const produtosExemplo = [
+interface Produto {
+  id: number;
+  preco: number;
+  titulo: string;
+  localizacao: string;
+  imagem: string;
+}
+
+const produtosExemplo: Produto[] = [
   {
     id: 1,
     preco: 2500,
@@ -49,11 +58,11 @@ const produtosExemplo = [
   },
 ];
 
-const Home = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [filtrosAtivos, setFiltrosAtivos] = useState([]);
+const Home: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [filtrosAtivos, setFiltrosAtivos] = useState<string[]>([]);
 
-  const removeFiltro = (filtro) => {
+  const removeFiltro = (filtro: string): void => {
     if (filtro === 'all') setFiltrosAtivos([]);
     else setFiltrosAtivos(filtrosAtivos.filter(f => f !== filtro));
   };
@@ -76,11 +85,11 @@ const Home = () => {
 
         <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1 flex-1">
           {filtrosAtivos.map((filtro) => {
-            let IconeExibir = LayoutGrid;
+            let IconeExibir: LucideIcon = LayoutGrid;
             if (filtro.startsWith('Min:') || filtro.startsWith('Max:')) {
               IconeExibir = DollarSign;
             } else {
-              IconeExibir = iconesFiltros[filtro] || LayoutGrid;
+              IconeExibir = iconesFiltros[filtro] ?? LayoutGrid;
             }
 
             return (
@@ -104,12 +113,12 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 2. GRID DE PRODUTOS CORRIGIDO */}
+      {/* 2. GRID DE PRODUTOS */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {produtosExemplo.map((produto) => (
           <CardProduto
             key={produto.id}
-            id={produto.id} 
+            id={produto.id}
             imagem={produto.imagem}
             preco={produto.preco}
             titulo={produto.titulo}

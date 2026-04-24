@@ -1,12 +1,19 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
-import { Link } from 'react-router-dom'; // Importante para a navegação
+import { Link } from 'react-router-dom';
 
-const CardProduto = ({ id, imagem, preco, titulo, localizacao }) => {
+interface CardProdutoProps {
+  id: number;
+  imagem: string;
+  preco: number;
+  titulo: string;
+  localizacao: string;
+}
+
+const CardProduto: React.FC<CardProdutoProps> = ({ id, imagem, preco, titulo, localizacao }) => {
   return (
-    /* Trocamos a div por Link para habilitar o clique */
-    <Link 
-      to={`/produto/${id}`} 
+    <Link
+      to={`/produto/${id}`}
       className="group h-full bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden 
                  flex flex-col
                  transition-all duration-300 ease-in-out
@@ -17,13 +24,14 @@ const CardProduto = ({ id, imagem, preco, titulo, localizacao }) => {
 
       {/* ÁREA DA IMAGEM */}
       <div className="w-full aspect-[4/3] overflow-hidden">
-        <img 
-          src={imagem} 
-          alt={titulo} 
+        <img
+          src={imagem}
+          alt={titulo}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => { 
-            e.target.onerror = null; 
-            e.target.src = "https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=400"; 
+          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+            const img = e.currentTarget;
+            img.onerror = null;
+            img.src = "https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=400";
           }}
         />
       </div>
@@ -31,7 +39,7 @@ const CardProduto = ({ id, imagem, preco, titulo, localizacao }) => {
       {/* CONTEÚDO */}
       <div className="flex-1 p-5 flex flex-col justify-between 
                       bg-linear-to-b from-transparent to-[#050510]/50">
-        
+
         <div>
           <p className="text-xl font-extrabold text-white">
             {preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -45,7 +53,7 @@ const CardProduto = ({ id, imagem, preco, titulo, localizacao }) => {
         {/* RODAPÉ: LOCALIZAÇÃO */}
         <div className="flex items-center gap-1.5 mt-4">
           <MapPin size={14} className="text-[#3b82f6]" />
-          
+
           <span className="text-[11px] font-bold text-[#3b82f6] tracking-tight truncate">
             {localizacao}
           </span>

@@ -3,13 +3,22 @@ import { X } from 'lucide-react';
 import BotaoFiltroMestre from './BotaoFiltroMestre';
 import ModalFiltros from './ModalFiltros';
 
-const FiltroCategorias = ({
+interface FiltroCategoriaProps {
+  onAbrirFiltros: () => void;
+  isModalOpen: boolean;
+  onClose: () => void;
+  filtrosAtivos?: string[];
+  onRemoveFiltro: (filtro: string) => void;
+  setFiltrosAtivos: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+const FiltroCategorias: React.FC<FiltroCategoriaProps> = ({
   onAbrirFiltros,
   isModalOpen,
   onClose,
   filtrosAtivos = [],
   onRemoveFiltro,
-  setFiltrosAtivos
+  setFiltrosAtivos,
 }) => {
   return (
     <div className="w-full py-6 flex items-center gap-4 h-fit">

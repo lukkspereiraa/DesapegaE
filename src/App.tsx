@@ -8,15 +8,15 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Rota da Home: Envolvida pelo Layout (Com Header/Footer) */}
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
             <MainLayout>
               <Home />
             </MainLayout>
-          } 
+          }
         />
-        
+
         {/* Rota de Detalhe: SEM o Layout */}
         <Route path="/produto/:id" element={<DetalheProduto />} />
       </Routes>
