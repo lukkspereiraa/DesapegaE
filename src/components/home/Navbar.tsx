@@ -1,10 +1,29 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import BrandLogo from './Logo';
 import BotaoGenerico from '../BotaoGenerico';
 import UserAvatar from '../UserAvatar';
 import BarraPesquisa from './BarraPesquisa';
 
 const Navbar: React.FC = () => {
+  const navigate = useNavigate();
+
+  const user = localStorage.getItem('user');
+
+  const handleAnunciar = () => {
+    if (user === 'logado') {
+      navigate('/anunciar');
+    } else {
+      navigate('/login', { state: { from: '/anunciar' } });
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    navigate('/');
+    window.location.reload();
+  };
+
   return (
     <nav className="w-full h-20 
                     bg-[#0a0a1a]/95 backdrop-blur-xl
@@ -14,25 +33,31 @@ const Navbar: React.FC = () => {
                     flex items-center justify-between
                     shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
 
-      {/* 1. Lado Esquerdo: Logo */}
       <div className="shrink-0">
         <BrandLogo cidade="Cedro" />
       </div>
 
-      {/* 2. Centro: Barra de Pesquisa */}
       <div className="flex-1 flex justify-center max-w-2xl px-8">
         <BarraPesquisa />
       </div>
 
-      {/* 3. Lado Direito: Ações Diretas */}
-      <div className="flex items-center gap-6 shrink-0">
-        <BotaoGenerico onClick={() => console.log("Anunciar!")}>
+      <div className="flex items-center gap-4 shrink-0">
+        <BotaoGenerico onClick={handleAnunciar}>
           Anunciar agora
         </BotaoGenerico>
 
-        <div className="w-px h-6 bg-white/10 mx-1" />
+        {!user && (
+          <BotaoGenerico onClick={() => navigate('/login')}>
+            Entrar
+          </BotaoGenerico>
+        )}
 
-        <UserAvatar />
+        {user && (
+          <>
+
+            <UserAvatar />
+          </>
+        )}
       </div>
     </nav>
   );

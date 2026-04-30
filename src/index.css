@@ -31,6 +31,7 @@
   border-radius: 9999px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 @utility text-neon-purple {
   color: #A855F7; 
   text-shadow: 0 0 12px rgba(168, 85, 247, 0.7),
@@ -55,6 +56,7 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -65,4 +67,16 @@
     color: white;
     -webkit-font-smoothing: antialiased;
   }
+}
+
+/* REMOVE FUNDO BRANCO DO AUTOFILL (CHROME, EDGE, ETC) */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #0a0a1a inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+  transition: background-color 5000s ease-in-out 0s;
 }
