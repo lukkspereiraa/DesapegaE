@@ -1,45 +1,115 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const apiBaseUrl = 'http://localhost:3333';
+
+const fallbackImage = 'https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=600';
+
+const resolveAdvertiserId = () => {
+  const storedUserId = Number(localStorage.getItem('userId'));
+  if (Number.isInteger(storedUserId) && storedUserId > 0) {
+    return storedUserId;
+  }
+
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    try {
+      const parsed = JSON.parse(storedUser) as { id?: number };
+      if (Number.isInteger(parsed.id) && (parsed.id ?? 0) > 0) {
+        return parsed.id as number;
+      }
+    } catch {
+      // Ignore invalid JSON.
+    }
+  }
+
+  return 1;
+};
+
+const formatCurrency = (value: number) => value.toLocaleString('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});
+
+const mapStatus = (status?: string) => {
+  if (status === 'Closed' || status === 'Blocked') {
+    return 'PAUSADO' as const;
+  }
+  return 'ATIVO' as const;
+};
+
 interface Anuncio {
   id: number;
   imagem: string;
   status: 'ATIVO' | 'PAUSADO';
   titulo: string;
-  preco: string;
+  preco: number;
 }
 
-const anunciosIniciais: Anuncio[] = [
-  {
-    id: 1,
-    imagem: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80',
-    status: 'ATIVO',
-    titulo: 'iPhone 13 Pro - 128GB',
-    preco: 'R$ 3.850',
-  },
-  {
-    id: 2,
-    imagem: 'https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=600&q=80',
-    status: 'ATIVO',
-    titulo: 'PC Gamer RTX 3060',
-    preco: 'R$ 4.200',
-  },
-  {
-    id: 3,
-    imagem: 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=600&q=80',
-    status: 'PAUSADO',
-    titulo: 'Headset Sony WH-1000XM4',
-    preco: 'R$ 1.100',
-  },
-];
+interface AdvertisementResponse {
+  id: number;
+  title: string;
+  price: number;
+  status?: string;
+  pictures?: { url: string }[];
+}
 
 const Perfil: React.FC = () => {
   const navigate = useNavigate();
-  const [anuncios, setAnuncios] = useState<Anuncio[]>(anunciosIniciais);
+  const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const user = localStorage.getItem('user');
-    if (!user) navigate('/login');
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadAnuncios = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const advertiserId = resolveAdvertiserId();
+        const response = await fetch(`${apiBaseUrl}/api/ads?advertiserId=${advertiserId}`);
+        if (!response.ok) {
+          setError(`Falha ao carregar anuncios (HTTP ${response.status}).`);
+          return;
+        }
+
+        const data = await response.json();
+        const ads = Array.isArray(data) ? (data as AdvertisementResponse[]) : [];
+        const mapped = ads.map((ad) => ({
+          id: ad.id,
+          imagem: ad.pictures?.[0]?.url ?? fallbackImage,
+          status: mapStatus(ad.status),
+          titulo: ad.title,
+          preco: Number.isFinite(ad.price) ? ad.price / 100 : 0,
+        }));
+
+        if (isMounted) {
+          setAnuncios(mapped);
+        }
+      } catch {
+        if (isMounted) {
+          setError('Nao foi possivel carregar os anuncios.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadAnuncios();
+
+    return () => {
+      isMounted = false;
+    };
   }, [navigate]);
 
   const handleLogout = () => {
@@ -166,7 +236,7 @@ const Perfil: React.FC = () => {
               </h3>
 
               <p className="text-liquid-purple text-2xl font-black mb-4">
-                {item.preco}
+                {formatCurrency(item.preco)}
               </p>
 
               <div className="grid grid-cols-2 gap-4">
@@ -208,7 +278,19 @@ const Perfil: React.FC = () => {
           ))}
         </div>
 
-        {anuncios.length === 0 && (
+        {loading && (
+          <p className="text-center text-white/50 font-bold mt-10">
+            Carregando anuncios...
+          </p>
+        )}
+
+        {error && (
+          <p className="text-center text-red-400 font-bold mt-10">
+            {error}
+          </p>
+        )}
+
+        {!loading && !error && anuncios.length === 0 && (
           <p className="text-center text-white/40 font-bold mt-10">
             Nenhum anúncio cadastrado.
           </p>

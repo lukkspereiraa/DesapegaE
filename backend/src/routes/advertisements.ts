@@ -38,6 +38,47 @@ const sendError = (res: Response, error: unknown) => {
   return res.status(500).json({ error: "Internal server error" });
 };
 
+advertisementRouter.get("/", async (req, res) => {
+  try {
+    const advertiserIdRaw = req.query.advertiserId;
+    let advertiserId: number | undefined;
+
+    if (typeof advertiserIdRaw === "string" && advertiserIdRaw.trim().length > 0) {
+      const parsed = Number(advertiserIdRaw);
+      if (!Number.isInteger(parsed) || parsed <= 0) {
+        return res.status(400).json({ error: "Invalid advertiserId" });
+      }
+      advertiserId = parsed;
+    } else if (Array.isArray(advertiserIdRaw)) {
+      return res.status(400).json({ error: "Invalid advertiserId" });
+    }
+
+    const advertisements = await prisma.advertisement.findMany({
+      where: advertiserId ? { advertiserId } : undefined,
+      include: {
+        pictures: true,
+        category: true,
+        advertiser: {
+          include: {
+            address: {
+              include: {
+                city: {
+                  include: { state: true },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return res.json(advertisements);
+  } catch (error) {
+    return sendError(res, error);
+  }
+});
+
 advertisementRouter.post("/", async (req, res) => {
   try {
     const data = createAdvertisementSchema.parse(req.body);
