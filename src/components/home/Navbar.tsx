@@ -4,24 +4,20 @@ import BrandLogo from './Logo';
 import BotaoGenerico from '../BotaoGenerico';
 import UserAvatar from '../UserAvatar';
 import BarraPesquisa from './BarraPesquisa';
+import { getAuthSession } from '../../lib/session';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
 
-  const user = localStorage.getItem('user');
+  const session = getAuthSession();
+  const user = session?.user;
 
   const handleAnunciar = () => {
-    if (user === 'logado') {
+    if (user) {
       navigate('/anunciar');
     } else {
       navigate('/login', { state: { from: '/anunciar' } });
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/');
-    window.location.reload();
   };
 
   return (
@@ -52,12 +48,7 @@ const Navbar: React.FC = () => {
           </BotaoGenerico>
         )}
 
-        {user && (
-          <>
-
-            <UserAvatar />
-          </>
-        )}
+        {user && <UserAvatar />}
       </div>
     </nav>
   );

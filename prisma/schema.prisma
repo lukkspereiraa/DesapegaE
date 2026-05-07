@@ -1,77 +1,14 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
-}
-
-generator client_backend {
-  provider = "prisma-client"
-  output   = "../backend/src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-model City {
-  id Int @id @default(autoincrement())
-  name String
-  postalCode String
-  state State @relation(fields: [stateId], references: [id])
-  stateId Int
-
-  addresses Address[]
-}
-
-model State {
-  id Int @id @default(autoincrement())
-  name String
-  code String
-  cities City[]
-}
-
-model Address {
-  id Int @id @default(autoincrement())
-  city City @relation(fields: [cityId], references: [id])
-  cityId Int
-  neighborhood String
-
-  users User[]
-}
-
 enum UserStatus {
   Active
   Blocked
-}
-
-enum UserKind {
-  Common
-  Admin
-}
-
-model User {
-  id Int @id @default(autoincrement())
-  name String
-  email String
-  password String
-  phone String
-  avatarUrl String
-  address Address @relation(fields: [addressId], references: [id])
-  addressId Int
-  status UserStatus @default(Active)
-  kind UserKind @default(Common)
-  advertisements Advertisement[] @relation("AdvertisementToUser")
-  reviews Review[]
-  complaints Complaint[]
-  favorites Advertisement[] @relation(name: "FavoriteToUser")
-  notifications Notification[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 enum AdvertisementStatus {
@@ -80,75 +17,167 @@ enum AdvertisementStatus {
   Blocked
 }
 
-model Advertisement {
-  id Int @id @default(autoincrement())
-  advertiser User @relation(name: "AdvertisementToUser", fields: [advertiserId], references: [id])
-  advertiserId Int
-  pictures AdvertisementPicture[]
-  title String
-  description String
-  price Int // In cents
-  conditions String
-  category Category @relation(fields: [categoryId], references: [id])
-  categoryId Int
-  status AdvertisementStatus @default(Open)
-  reviews Review[]
-  complaints Complaint[]
-  favoritedBy User[] @relation(name: "FavoriteToUser")
-  
+enum RoleName {
+  Admin
+  Advertiser
+  Guest
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  name      RoleName @unique
+  users     User[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model State {
+  id        Int      @id @default(autoincrement())
+  name      String
+  code      String   @unique
+  cities    City[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model City {
+  id        Int      @id @default(autoincrement())
+  name      String
+  state     State    @relation(fields: [stateId], references: [id])
+  stateId   Int
+  addresses Address[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([name, stateId])
+}
+
+model Address {
+  id           Int      @id @default(autoincrement())
+  city         City     @relation(fields: [cityId], references: [id])
+  cityId       Int
+  neighborhood String
+  postalCode   String   @default("00000-000")
+  street       String?
+  number       String?
+  complement   String?
+  users        User[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String          @unique
+  password       String
+  phone          String
+  instagram      String?
+  avatarUrl      String?
+  address        Address         @relation(fields: [addressId], references: [id])
+  addressId      Int
+  status         UserStatus      @default(Active)
+  role           Role?           @relation(fields: [roleId], references: [id])
+  roleId         Int?
+  advertisements Advertisement[] @relation("AdvertisementToUser")
+  reviews        Review[]
+  complaints     Complaint[]
+  favorites      Advertisement[] @relation(name: "FavoriteToUser")
+  notifications  Notification[]
+  refreshTokens  RefreshToken[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([roleId])
+}
+
+model Advertisement {
+  id           Int                  @id @default(autoincrement())
+  advertiser   User                 @relation(name: "AdvertisementToUser", fields: [advertiserId], references: [id])
+  advertiserId Int
+  pictures     AdvertisementPicture[]
+  title        String
+  description  String
+  price        Int // In cents
+  conditions   String
+  category     Category             @relation(fields: [categoryId], references: [id])
+  categoryId   Int
+  status       AdvertisementStatus  @default(Open)
+  reviews      Review[]
+  complaints   Complaint[]
+  favoritedBy  User[]               @relation(name: "FavoriteToUser")
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([advertiserId])
+  @@index([categoryId])
+  @@index([status])
 }
 
 model AdvertisementPicture {
-  id Int @id @default(autoincrement())
-  url String
-  advertisement Advertisement @relation(fields: [advertisementId], references: [id])
+  id              Int           @id @default(autoincrement())
+  url             String
+  advertisement   Advertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
   advertisementId Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model Category {
-  id Int @id @default(autoincrement())
-  name String
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
   advertisements Advertisement[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
 }
 
 model Review {
-  id Int @id @default(autoincrement())
-  advertisement Advertisement @relation(fields: [advertisementId], references: [id])
+  id              Int           @id @default(autoincrement())
+  advertisement   Advertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
   advertisementId Int
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  rating Int
-  comment String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  rating          Int
+  comment         String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model Complaint {
-  id Int @id @default(autoincrement())
-  advertisement Advertisement @relation(fields: [advertisementId], references: [id])
+  id              Int           @id @default(autoincrement())
+  advertisement   Advertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
   advertisementId Int
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  reason String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  reason          String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model Notification {
-  id Int @id @default(autoincrement())
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  title String
-  body String
-  read Boolean @default(false)
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  sentAt    DateTime @default(now())
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
 
-  sentAt DateTime @default(now())
-  readAt DateTime
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  jti       String   @unique
+  tokenHash String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
 }

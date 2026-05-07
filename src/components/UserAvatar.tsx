@@ -1,15 +1,39 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { clearAuthSession, getAuthSession } from '../lib/session';
+import { trpc } from '../lib/trpc';
 
 const UserAvatar: React.FC = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [temaClaro, setTemaClaro] = useState(false);
+  const session = getAuthSession();
+  const user = session?.user;
+
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSettled: () => {
+      clearAuthSession();
+      navigate('/');
+    },
+  });
+
+  const initials = user?.name
+    ? user.name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((chunk) => chunk[0]?.toUpperCase() ?? '')
+        .join('')
+    : 'U';
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    if (session?.refreshToken) {
+      logoutMutation.mutate({ refreshToken: session.refreshToken });
+      return;
+    }
+
+    clearAuthSession();
     navigate('/');
-    window.location.reload();
   };
 
   return (
@@ -20,7 +44,7 @@ const UserAvatar: React.FC = () => {
         className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-liquid-purple to-electric-blue shadow-[0_0_20px_rgba(168,85,247,0.6)]"
       >
         <div className="w-full h-full rounded-full bg-[#11142d] flex items-center justify-center text-white font-black">
-          LL
+          {initials}
         </div>
       </button>
 
@@ -35,7 +59,7 @@ const UserAvatar: React.FC = () => {
           {/* TOPO */}
           <div className="flex items-center justify-between mb-5">
             <span className="text-liquid-purple font-black text-sm">
-              Lana Liz Lima Torres
+              {user?.name ?? 'Usuario'}
             </span>
 
             <button

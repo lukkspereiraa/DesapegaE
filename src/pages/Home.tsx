@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import BotaoFiltroMestre from '../components/home/BotaoFiltroMestre';
 import ModalFiltros from '../components/home/ModalFiltros';
 import CardProduto from '../components/home/CardProduto';
+import { trpc } from '../lib/trpc';
 
 import {
   X, Shirt, Armchair, Tv, LayoutGrid,
   Sparkles, History, Clock, DollarSign,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-
-const apiBaseUrl = 'http://localhost:3333';
 
 const fallbackImage = 'https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=400';
 
@@ -29,82 +28,88 @@ interface Produto {
   titulo: string;
   localizacao: string;
   imagem: string;
+  condicao: string;
+  categoria: string;
 }
 
-interface AdvertisementResponse {
-  id: number;
-  title: string;
-  price: number;
-  pictures?: { url: string }[];
-  advertiser?: {
-    address?: {
-      neighborhood?: string | null;
-      city?: {
-        name?: string | null;
-      } | null;
-    } | null;
-  } | null;
-}
-
-const formatLocation = (ad: AdvertisementResponse) => {
+const formatLocation = (ad: {
+  advertiser: {
+    address: {
+      neighborhood: string;
+      city: {
+        name: string;
+      };
+    };
+  };
+}) => {
   const neighborhood = ad.advertiser?.address?.neighborhood ?? '';
   const city = ad.advertiser?.address?.city?.name ?? '';
   const location = [neighborhood, city].filter(Boolean).join(', ');
   return location || 'Localizacao nao informada';
 };
 
+const normalize = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
 const Home: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [filtrosAtivos, setFiltrosAtivos] = useState<string[]>([]);
-  const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const productsQuery = trpc.product.listPublic.useQuery();
 
-    const loadProdutos = async () => {
-      setLoading(true);
-      setError(null);
+  const produtos = useMemo<Produto[]>(() => {
+    const ads = productsQuery.data ?? [];
+    return ads.map((ad) => ({
+      id: ad.id,
+      preco: Number.isFinite(ad.price) ? ad.price / 100 : 0,
+      titulo: ad.title,
+      localizacao: formatLocation(ad),
+      imagem: ad.pictures?.[0]?.url ?? fallbackImage,
+      condicao: ad.conditions,
+      categoria: ad.category?.name ?? 'Todos',
+    }));
+  }, [productsQuery.data]);
 
-      try {
-        const response = await fetch(`${apiBaseUrl}/api/ads`);
-        if (!response.ok) {
-          setError(`Falha ao carregar anuncios (HTTP ${response.status}).`);
-          return;
-        }
+  const produtosFiltrados = useMemo(() => {
+    const categoryFilters = filtrosAtivos.filter((filtro) =>
+      ['Roupas', 'Móveis', 'Eletrônicos', 'Todos'].includes(filtro),
+    );
+    const conditionFilters = filtrosAtivos.filter((filtro) =>
+      ['Novo', 'Usado', 'Seminovo'].includes(filtro),
+    );
 
-        const data = await response.json();
-        const ads = Array.isArray(data) ? (data as AdvertisementResponse[]) : [];
+    const minFilter = filtrosAtivos.find((filtro) => filtro.startsWith('Min: R$'));
+    const maxFilter = filtrosAtivos.find((filtro) => filtro.startsWith('Max: R$'));
+    const minValue = minFilter ? Number(minFilter.replace('Min: R$', '').replace(',', '.')) : undefined;
+    const maxValue = maxFilter ? Number(maxFilter.replace('Max: R$', '').replace(',', '.')) : undefined;
 
-        const mapped = ads.map((ad) => ({
-          id: ad.id,
-          preco: Number.isFinite(ad.price) ? ad.price / 100 : 0,
-          titulo: ad.title,
-          localizacao: formatLocation(ad),
-          imagem: ad.pictures?.[0]?.url ?? fallbackImage,
-        }));
-
-        if (isMounted) {
-          setProdutos(mapped);
-        }
-      } catch {
-        if (isMounted) {
-          setError('Nao foi possivel carregar os anuncios.');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+    return produtos.filter((produto) => {
+      if (categoryFilters.length > 0 && !categoryFilters.includes('Todos')) {
+        const produtoCategoria = normalize(produto.categoria);
+        const matchCategoria = categoryFilters.some((category) => normalize(category) === produtoCategoria);
+        if (!matchCategoria) return false;
       }
-    };
 
-    loadProdutos();
+      if (conditionFilters.length > 0) {
+        const produtoCondicao = normalize(produto.condicao);
+        const matchCondicao = conditionFilters.some((condition) => normalize(condition) === produtoCondicao);
+        if (!matchCondicao) return false;
+      }
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+      if (Number.isFinite(minValue) && produto.preco < (minValue as number)) {
+        return false;
+      }
+
+      if (Number.isFinite(maxValue) && produto.preco > (maxValue as number)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [filtrosAtivos, produtos]);
 
   const removeFiltro = (filtro: string): void => {
     if (filtro === 'all') setFiltrosAtivos([]);
@@ -159,7 +164,7 @@ const Home: React.FC = () => {
 
       {/* 2. GRID DE PRODUTOS */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {produtos.map((produto) => (
+        {produtosFiltrados.map((produto) => (
           <CardProduto
             key={produto.id}
             id={produto.id}
@@ -171,19 +176,19 @@ const Home: React.FC = () => {
         ))}
       </div>
 
-      {loading && (
+      {productsQuery.isLoading && (
         <p className="mt-6 text-center text-white/50 text-sm font-black">
           Carregando anuncios...
         </p>
       )}
 
-      {error && (
+      {productsQuery.error && (
         <p className="mt-6 text-center text-red-400 text-sm font-black">
-          {error}
+          {productsQuery.error.message}
         </p>
       )}
 
-      {!loading && !error && produtos.length === 0 && (
+      {!productsQuery.isLoading && !productsQuery.error && produtosFiltrados.length === 0 && (
         <p className="mt-6 text-center text-white/40 text-sm font-black">
           Nenhum anuncio encontrado.
         </p>

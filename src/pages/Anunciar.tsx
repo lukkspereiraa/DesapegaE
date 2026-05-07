@@ -1,45 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Image, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 import BotaoGenerico from '../components/BotaoGenerico';
+import { isAuthenticated } from '../lib/session';
+import { trpc } from '../lib/trpc';
 
-const apiBaseUrl = 'http://localhost:3333';
+const categoryOptions = [
+  { id: 1, label: 'Tecnologia' },
+  { id: 2, label: 'Roupas' },
+  { id: 3, label: 'Móveis' },
+  { id: 4, label: 'Eletrônicos' },
+];
 
-const categoryIdByName: Record<string, number> = {
-  Tecnologia: 1,
-  Roupas: 2,
-  'Móveis': 3,
-  'Eletrônicos': 4,
-};
+const categoryIdByName = Object.fromEntries(categoryOptions.map((option) => [option.label, option.id]));
+const categoryNameById = Object.fromEntries(categoryOptions.map((option) => [option.id, option.label]));
 
 const parsePictureUrls = (value: string) => value
   .split(/[\n,]+/)
   .map((item) => item.trim())
   .filter(Boolean);
 
-const resolveAdvertiserId = () => {
-  const storedUserId = Number(localStorage.getItem('userId'));
-  if (Number.isInteger(storedUserId) && storedUserId > 0) {
-    return storedUserId;
-  }
-
-  const storedUser = localStorage.getItem('user');
-  if (storedUser) {
-    try {
-      const parsed = JSON.parse(storedUser) as { id?: number };
-      if (Number.isInteger(parsed.id) && (parsed.id ?? 0) > 0) {
-        return parsed.id as number;
-      }
-    } catch {
-      // Ignore invalid JSON.
-    }
-  }
-
-  return 1;
+type EditLocationState = {
+  productId?: number;
 };
 
 const Anunciar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const utils = trpc.useUtils();
+
+  const state = (location.state as EditLocationState | null) ?? null;
+  const productIdFromState = Number(state?.productId);
+  const isEditMode = Number.isInteger(productIdFromState) && productIdFromState > 0;
 
   const [estadoOpen, setEstadoOpen] = useState(false);
   const [estado, setEstado] = useState('Seminovo');
@@ -55,12 +47,54 @@ const Anunciar: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const productQuery = trpc.product.byId.useQuery(
+    { id: productIdFromState },
+    {
+      enabled: isEditMode,
+    },
+  );
+
+  const createProduct = trpc.product.create.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.product.listPublic.invalidate(),
+        utils.product.myAds.invalidate(),
+      ]);
+      setSuccess('Anuncio publicado com sucesso.');
+      navigate('/perfil');
+    },
+  });
+
+  const updateProduct = trpc.product.update.useMutation({
+    onSuccess: async (data) => {
+      await Promise.all([
+        utils.product.listPublic.invalidate(),
+        utils.product.myAds.invalidate(),
+        utils.product.byId.invalidate({ id: data.id }),
+      ]);
+      setSuccess('Anuncio atualizado com sucesso.');
+      navigate('/perfil');
+    },
+  });
+
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (!user) {
-      navigate('/login');
+    if (!isAuthenticated()) {
+      navigate('/login', { state: { from: '/anunciar' }, replace: true });
     }
   }, [navigate]);
+
+  useEffect(() => {
+    if (!productQuery.data) {
+      return;
+    }
+
+    setTitulo(productQuery.data.title);
+    setDescricao(productQuery.data.description);
+    setValor((productQuery.data.price / 100).toString());
+    setUrlsFotos(productQuery.data.pictures.map((picture) => picture.url).join('\n'));
+    setEstado(productQuery.data.conditions || 'Seminovo');
+    setTipo(categoryNameById[productQuery.data.categoryId] ?? 'Tecnologia');
+  }, [productQuery.data]);
 
   const handleSubmit = async () => {
     if (submitting) return;
@@ -87,12 +121,10 @@ const Anunciar: React.FC = () => {
       return;
     }
 
-    const advertiserId = resolveAdvertiserId();
     const categoryId = categoryIdByName[tipo] ?? 1;
     const pictures = parsePictureUrls(urlsFotos);
 
     const payload = {
-      advertiserId,
       title: tituloNormalizado,
       description: descricaoNormalizada,
       price: Math.round(valorNormalizado * 100),
@@ -104,26 +136,17 @@ const Anunciar: React.FC = () => {
     setSubmitting(true);
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/ads`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        const details = body?.details?.fieldErrors
-          ? Object.values(body.details.fieldErrors).flat().filter(Boolean).join(', ')
-          : null;
-        const message = body?.error ?? `Falha ao publicar (HTTP ${response.status}).`;
-        setError(details ? `${message} ${details}` : message);
-        return;
+      if (isEditMode) {
+        await updateProduct.mutateAsync({
+          id: productIdFromState,
+          ...payload,
+        });
+      } else {
+        await createProduct.mutateAsync(payload);
       }
-
-      setSuccess('Anuncio publicado com sucesso.');
-      navigate('/perfil');
-    } catch {
-      setError('Nao foi possivel conectar ao servidor.');
+    } catch (mutationError) {
+      const message = mutationError instanceof Error ? mutationError.message : 'Nao foi possivel salvar o anuncio.';
+      setError(message);
     } finally {
       setSubmitting(false);
     }
@@ -153,8 +176,20 @@ const Anunciar: React.FC = () => {
         flex flex-col">
 
         <h1 className="text-[31px] font-black text-center text-white/75 mb-3">
-          Anunciar Item
+          {isEditMode ? 'Editar Anuncio' : 'Anunciar Item'}
         </h1>
+
+        {isEditMode && productQuery.isLoading && (
+          <p className="text-center text-white/50 text-sm font-black mb-3">
+            Carregando dados do anuncio...
+          </p>
+        )}
+
+        {isEditMode && productQuery.error && (
+          <p className="text-center text-red-400 text-sm font-black mb-3">
+            {productQuery.error.message}
+          </p>
+        )}
 
         {/* TÍTULO */}
         <label className="text-white/50 text-[11px] font-black mb-1">
@@ -238,17 +273,17 @@ const Anunciar: React.FC = () => {
               <div className="absolute bottom-[52px] w-full rounded-xl overflow-hidden
                 bg-gradient-to-b from-liquid-purple to-[#a84df5]
                 shadow-[0_0_30px_rgba(168,85,247,0.75)] z-50">
-                {['Tecnologia', 'Roupas', 'Móveis', 'Eletrônicos'].map(item => (
+                {categoryOptions.map((option) => (
                   <button
-                    key={item}
+                    key={option.id}
                     onClick={() => {
-                      setTipo(item);
+                      setTipo(option.label);
                       setTipoOpen(false);
                     }}
                     className="w-full text-left px-4 py-3 text-white text-[12px] font-black
                     border-b border-white/10 last:border-none hover:bg-white/10"
                   >
-                    {item}
+                    {option.label}
                   </button>
                 ))}
               </div>
@@ -315,7 +350,12 @@ const Anunciar: React.FC = () => {
             onClick={handleSubmit}
             className="px-12 py-4 text-xl"
           >
-            {submitting ? 'Publicando...' : 'Publicar no Desapega'}<span>Ê</span>
+            {submitting
+              ? 'Salvando...'
+              : isEditMode
+                ? 'Salvar alteracoes'
+                : 'Publicar no Desapega'}
+            <span>Ê</span>
           </BotaoGenerico>
         </div>
 

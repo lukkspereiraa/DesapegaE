@@ -1,16 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import BotaoGenerico from '../components/BotaoGenerico';
+import { saveAuthSession } from '../lib/session';
+import { trpc } from '../lib/trpc';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
 
-  const from = location.state?.from || '/perfil';
+  const from = (location.state as { from?: string } | null)?.from || '/perfil';
 
-  const handleLogin = () => {
-    localStorage.setItem('user', 'logado');
-    navigate(from);
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: (data) => {
+      saveAuthSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        user: data.user,
+      });
+      navigate(from, { replace: true });
+    },
+  });
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLocalError(null);
+
+    if (!email.trim() || !password.trim()) {
+      setLocalError('Informe e-mail e senha.');
+      return;
+    }
+
+    try {
+      await loginMutation.mutateAsync({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+    } catch {
+      // Error already exposed by mutation state.
+    }
   };
 
   return (
@@ -45,10 +75,12 @@ const Login: React.FC = () => {
             Login<span className="text-liquid-purple">Ê</span>
           </h1>
 
-          <div className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleLogin}>
             <input
               type="email"
               placeholder="E-mail"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
               className="px-5 py-3 rounded-2xl bg-white/5 border border-white/10 
               text-white placeholder-white/40 outline-none 
               focus:border-electric-blue transition-all"
@@ -57,17 +89,25 @@ const Login: React.FC = () => {
             <input
               type="password"
               placeholder="Senha"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
               className="px-5 py-3 rounded-2xl bg-white/5 border border-white/10 
               text-white placeholder-white/40 outline-none 
               focus:border-electric-blue transition-all"
             />
-          </div>
 
-          <div className="flex justify-center mt-4">
-            <BotaoGenerico className="px-10 py-3" onClick={handleLogin}>
-              Entrar
-            </BotaoGenerico>
-          </div>
+            <div className="flex justify-center mt-4">
+              <BotaoGenerico className="px-10 py-3">
+                {loginMutation.isPending ? 'Entrando...' : 'Entrar'}
+              </BotaoGenerico>
+            </div>
+
+            {(localError || loginMutation.error?.message) && (
+              <p className="text-center text-red-400 text-sm font-black">
+                {localError ?? loginMutation.error?.message}
+              </p>
+            )}
+          </form>
 
           <p className="text-center text-white/40 text-sm">
             Não tem conta?{' '}

@@ -1,15 +1,59 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
-import BotaoGenerico from '../components/BotaoGenerico';
+import { trpc } from '../lib/trpc';
 
 const EditarPerfil: React.FC = () => {
   const navigate = useNavigate();
+  const utils = trpc.useUtils();
+
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [instagram, setInstagram] = useState('');
+
+  const profileQuery = trpc.user.profile.useQuery();
+
+  const updateMutation = trpc.user.updateProfile.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.user.profile.invalidate(),
+        utils.auth.me.invalidate(),
+      ]);
+      navigate('/perfil');
+    },
+  });
 
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (!user) navigate('/login');
-  }, [navigate]);
+    if (!profileQuery.data) {
+      return;
+    }
+
+    setNome(profileQuery.data.name ?? '');
+    setEmail(profileQuery.data.email ?? '');
+    setTelefone(profileQuery.data.phone ?? '');
+    setInstagram(profileQuery.data.instagram ?? '');
+  }, [profileQuery.data]);
+
+  const handleSave = async () => {
+    try {
+      await updateMutation.mutateAsync({
+        name: nome.trim(),
+        email: email.trim().toLowerCase(),
+        phone: telefone.trim(),
+        instagram: instagram.trim() || null,
+      });
+    } catch {
+      // Error already exposed by mutation state.
+    }
+  };
+
+  const initials = nome
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((chunk) => chunk[0]?.toUpperCase() ?? '')
+    .join('') || 'U';
 
   return (
     <div className="relative min-h-screen w-full bg-[#020513] overflow-hidden flex items-center justify-center px-4">
@@ -34,7 +78,7 @@ const EditarPerfil: React.FC = () => {
             <div className="w-36 h-36 rounded-full border-[6px] border-liquid-purple 
               flex items-center justify-center text-white text-6xl font-light 
               shadow-[0_0_35px_rgba(168,85,247,0.75)]">
-              LP
+              {initials}
             </div>
 
             <button className="absolute bottom-1 right-1 w-11 h-11 rounded-full 
@@ -54,7 +98,8 @@ const EditarPerfil: React.FC = () => {
             </label>
             <input
               type="text"
-              defaultValue="Lana Liz Lima Torres"
+              value={nome}
+              onChange={(event) => setNome(event.target.value)}
               className="w-full h-12 px-5 rounded-xl bg-[#111735]/90 border border-white/25
               text-white outline-none focus:border-liquid-purple transition-all"
             />
@@ -66,7 +111,8 @@ const EditarPerfil: React.FC = () => {
             </label>
             <input
               type="email"
-              defaultValue="lana.liz.lima08@aluno.ifce.edu.br"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
               className="w-full h-12 px-5 rounded-xl bg-[#111735]/90 border border-white/25
               text-white outline-none focus:border-liquid-purple transition-all"
             />
@@ -78,7 +124,8 @@ const EditarPerfil: React.FC = () => {
             </label>
             <input
               type="text"
-              defaultValue="(xx) 999-999.99"
+              value={telefone}
+              onChange={(event) => setTelefone(event.target.value)}
               className="w-full h-12 px-5 rounded-xl bg-[#111735]/90 border border-white/25
               text-white outline-none focus:border-liquid-purple transition-all"
             />
@@ -90,13 +137,26 @@ const EditarPerfil: React.FC = () => {
             </label>
             <input
               type="text"
-              defaultValue="@Lana_liz__"
+              value={instagram}
+              onChange={(event) => setInstagram(event.target.value)}
               className="w-full h-12 px-5 rounded-xl bg-[#111735]/90 border border-white/25
               text-white outline-none focus:border-liquid-purple transition-all"
             />
           </div>
 
         </div>
+
+        {profileQuery.isLoading && (
+          <p className="text-center text-white/50 text-sm font-black mt-4">
+            Carregando perfil...
+          </p>
+        )}
+
+        {(profileQuery.error || updateMutation.error) && (
+          <p className="text-center text-red-400 text-sm font-black mt-4">
+            {profileQuery.error?.message ?? updateMutation.error?.message}
+          </p>
+        )}
 
         
         {/* BOTÕES */}
@@ -111,10 +171,10 @@ const EditarPerfil: React.FC = () => {
 
         <div className="h-14 w-full rounded-xl bg-gradient-to-r from-liquid-purple to-electric-blue shadow-[0_0_28px_rgba(168,85,247,0.75)] flex items-center justify-center">
             <button
-            onClick={() => navigate('/perfil')}
+          onClick={handleSave}
             className="w-full h-full flex items-center justify-center text-white text-xl font-black tracking-widest"
             >
-            SALVAR
+          {updateMutation.isPending ? 'SALVANDO...' : 'SALVAR'}
             </button>
         </div>
 
