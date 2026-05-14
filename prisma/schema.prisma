@@ -67,28 +67,31 @@ model Address {
 }
 
 model User {
-  id             Int             @id @default(autoincrement())
-  name           String
-  email          String          @unique
-  password       String
-  phone          String
-  instagram      String?
-  avatarUrl      String?
-  address        Address         @relation(fields: [addressId], references: [id])
-  addressId      Int
-  status         UserStatus      @default(Active)
-  role           Role?           @relation(fields: [roleId], references: [id])
-  roleId         Int?
+  id               Int             @id @default(autoincrement())
+  name             String
+  email            String          @unique
+  password         String
+  phone            String
+  instagram        String?
+  avatarUrl        String?
+  avatarBlobId     Int?
+  avatarBlob       ImageBlob?      @relation("UserAvatarBlob", fields: [avatarBlobId], references: [id], onDelete: SetNull)
+  address          Address         @relation(fields: [addressId], references: [id])
+  addressId        Int
+  status           UserStatus      @default(Active)
+  role             Role?           @relation(fields: [roleId], references: [id])
+  roleId           Int?
   advertisements Advertisement[] @relation("AdvertisementToUser")
-  reviews        Review[]
-  complaints     Complaint[]
-  favorites      Advertisement[] @relation(name: "FavoriteToUser")
-  notifications  Notification[]
-  refreshTokens  RefreshToken[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  reviews          Review[]
+  complaints       Complaint[]
+  favorites        Advertisement[] @relation(name: "FavoriteToUser")
+  notifications    Notification[]
+  refreshTokens    RefreshToken[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   @@index([roleId])
+  @@index([avatarBlobId])
 }
 
 model Advertisement {
@@ -117,10 +120,26 @@ model Advertisement {
 model AdvertisementPicture {
   id              Int           @id @default(autoincrement())
   url             String
+  blobId          Int?
+  blob            ImageBlob?    @relation(fields: [blobId], references: [id], onDelete: SetNull)
   advertisement   Advertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
   advertisementId Int
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  @@index([blobId])
+}
+
+model ImageBlob {
+  id                    Int                    @id @default(autoincrement())
+  data                  Bytes
+  mimeType              String
+  fileName              String?
+  sizeBytes             Int
+  userAvatarReferences  User[]                 @relation("UserAvatarBlob")
+  advertisementPictures AdvertisementPicture[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 }
 
 model Category {

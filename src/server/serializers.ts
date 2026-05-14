@@ -1,4 +1,15 @@
 import { type Prisma } from "@prisma/client";
+import { env } from "./env";
+
+const mediaBaseUrl = (env.PUBLIC_BASE_URL ?? `http://localhost:${env.SERVER_PORT}`).replace(/\/+$/, "");
+
+export function resolveUserAvatarUrl(avatarBlobId?: number | null, legacyAvatarUrl?: string | null): string | null {
+  if (avatarBlobId) {
+    return `${mediaBaseUrl}/media/${avatarBlobId}`;
+  }
+
+  return legacyAvatarUrl ?? null;
+}
 
 export const userProfileSelect = {
   id: true,
@@ -7,6 +18,7 @@ export const userProfileSelect = {
   phone: true,
   instagram: true,
   avatarUrl: true,
+  avatarBlobId: true,
   status: true,
   role: {
     select: {
@@ -47,7 +59,7 @@ export function serializeUserProfile(user: UserProfilePayload) {
     email: user.email,
     phone: user.phone,
     instagram: user.instagram,
-    avatarUrl: user.avatarUrl,
+    avatarUrl: resolveUserAvatarUrl(user.avatarBlobId, user.avatarUrl),
     status: user.status,
     role: user.role?.name ?? 'Guest',
     address: {

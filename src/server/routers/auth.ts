@@ -13,7 +13,8 @@ const registerInputSchema = z.object({
   password: z.string().min(6).max(100),
   phone: z.string().trim().min(8).max(25),
   instagram: z.string().trim().max(80).optional(),
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: z.string().trim().min(1).optional(),
+  avatarBlobId: z.number().int().positive().optional(),
   address: addressInputSchema,
 });
 
@@ -37,6 +38,17 @@ export const authRouter = router({
       throw new TRPCError({ code: "CONFLICT", message: "Email ja cadastrado." });
     }
 
+    if (input.avatarBlobId !== undefined) {
+      const blobExists = await ctx.prisma.imageBlob.findUnique({
+        where: { id: input.avatarBlobId },
+        select: { id: true },
+      });
+
+      if (!blobExists) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Imagem de avatar invalida." });
+      }
+    }
+
     const advertiserRole = await ctx.prisma.role.findUnique({
       where: { name: RoleName.Advertiser },
       select: { id: true, name: true },
@@ -57,6 +69,7 @@ export const authRouter = router({
         phone: input.phone,
         instagram: input.instagram,
         avatarUrl: input.avatarUrl,
+        avatarBlobId: input.avatarBlobId,
         status: UserStatus.Active,
         roleId: advertiserRole.id,
         addressId,

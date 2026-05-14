@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearAuthSession, getAuthSession } from '../lib/session';
 import { trpc } from '../lib/trpc';
@@ -27,6 +27,7 @@ interface Anuncio {
 
 const Perfil: React.FC = () => {
   const navigate = useNavigate();
+  const [avatarBroken, setAvatarBroken] = useState(false);
 
   const utils = trpc.useUtils();
   const session = getAuthSession();
@@ -75,6 +76,11 @@ const Perfil: React.FC = () => {
   }, [myAdsQuery.data]);
 
   const user = profileQuery.data;
+
+  useEffect(() => {
+    setAvatarBroken(false);
+  }, [user?.avatarUrl]);
+
   const userInitials = user?.name
     ? user.name
         .split(' ')
@@ -138,8 +144,17 @@ const Perfil: React.FC = () => {
       <div className="relative z-10 max-w-6xl mx-auto">
         <div className="w-full rounded-[40px] bg-[#11142d]/85 border border-white/10 px-14 py-10 flex items-center justify-between shadow-[0_35px_80px_rgba(0,0,0,0.75)]">
           <div className="flex items-center gap-7">
-            <div className="w-28 h-28 rounded-full border-4 border-liquid-purple flex items-center justify-center text-white text-5xl font-light shadow-[0_0_30px_rgba(168,85,247,0.8)]">
-              {userInitials}
+            <div className="w-28 h-28 rounded-full border-4 border-liquid-purple flex items-center justify-center text-white text-5xl font-light shadow-[0_0_30px_rgba(168,85,247,0.8)] overflow-hidden bg-[#080b1d]">
+              {user?.avatarUrl && !avatarBroken ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                  onError={() => setAvatarBroken(true)}
+                />
+              ) : (
+                userInitials
+              )}
             </div>
 
             <div>

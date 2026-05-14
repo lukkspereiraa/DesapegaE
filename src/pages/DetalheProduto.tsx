@@ -8,8 +8,6 @@ import CardVendedor from '../components/detalhes/CardVendedor';
 import AcoesProduto from '../components/detalhes/AcoesProduto';
 import { trpc } from '../lib/trpc';
 
-const fallbackImage = 'https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=800';
-
 const formatLocation = (ad: {
   advertiser: {
     address: {
@@ -63,7 +61,7 @@ const DetalheProduto: React.FC = () => {
   const produto = productQuery.data;
   const precoEmReais = produto.price / 100;
   const localizacao = formatLocation(produto);
-  const imagemPrincipal = produto.pictures?.[0]?.url ?? fallbackImage;
+  const imagensProduto = (produto.pictures ?? []).map((picture) => picture.url);
 
   return (
     <div className="relative min-h-screen bg-[#08080c] text-white selection:bg-electric-blue overflow-hidden pb-12 font-sans">
@@ -81,7 +79,7 @@ const DetalheProduto: React.FC = () => {
 
           <div className="w-full lg:w-[53%] shrink-0">
             <GaleriaProduto
-              imagemPrincipal={imagemPrincipal}
+              imagens={imagensProduto}
               titulo={produto.title}
             />
           </div>
@@ -95,7 +93,11 @@ const DetalheProduto: React.FC = () => {
             />
 
             <div className="-mt-3">
-              <CardVendedor nome={produto.advertiser.name} vendas="0" />
+              <CardVendedor
+                nome={produto.advertiser.name}
+                vendas="0"
+                avatarUrl={produto.advertiser.avatarUrl}
+              />
             </div>
 
             <div className="-mt-2">

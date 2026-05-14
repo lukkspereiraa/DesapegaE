@@ -2,6 +2,8 @@ import { AdvertisementStatus, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
+import { deleteImageBlobIfUnused } from "../blob";
+import { resolveUserAvatarUrl } from "../serializers";
 
 const publicListInputSchema = z
   .object({
@@ -12,13 +14,18 @@ const publicListInputSchema = z
   })
   .optional();
 
+const pictureInputSchema = z.object({
+  url: z.string().trim().min(1),
+  blobId: z.number().int().positive().optional(),
+});
+
 const createProductInputSchema = z.object({
   title: z.string().trim().min(3).max(200),
   description: z.string().trim().min(5).max(5000),
   price: z.number().int().nonnegative(),
   conditions: z.string().trim().min(2).max(60),
   categoryId: z.number().int().positive(),
-  pictures: z.array(z.string().url()).max(10).optional(),
+  pictures: z.array(pictureInputSchema).max(10).optional(),
 });
 
 const updateProductInputSchema = z
@@ -29,7 +36,7 @@ const updateProductInputSchema = z
     price: z.number().int().nonnegative().optional(),
     conditions: z.string().trim().min(2).max(60).optional(),
     categoryId: z.number().int().positive().optional(),
-    pictures: z.array(z.string().url()).max(10).optional(),
+    pictures: z.array(pictureInputSchema).max(10).optional(),
     status: z.nativeEnum(AdvertisementStatus).optional(),
   })
   .refine(
@@ -75,6 +82,7 @@ const advertisementSelect = {
     select: {
       id: true,
       url: true,
+      blobId: true,
     },
     orderBy: {
       id: "asc",
@@ -85,6 +93,7 @@ const advertisementSelect = {
       id: true,
       name: true,
       avatarUrl: true,
+      avatarBlobId: true,
       phone: true,
       instagram: true,
       address: {
@@ -108,6 +117,18 @@ const advertisementSelect = {
   },
 } satisfies Prisma.AdvertisementSelect;
 
+type AdvertisementPayload = Prisma.AdvertisementGetPayload<{ select: typeof advertisementSelect }>;
+
+function serializeAdvertisement(ad: AdvertisementPayload): AdvertisementPayload {
+  return {
+    ...ad,
+    advertiser: {
+      ...ad.advertiser,
+      avatarUrl: resolveUserAvatarUrl(ad.advertiser.avatarBlobId, ad.advertiser.avatarUrl),
+    },
+  };
+}
+
 async function ensureOwner(prisma: Prisma.TransactionClient | Prisma.DefaultPrismaClient, adId: number, userId: number) {
   const ad = await prisma.advertisement.findUnique({
     where: { id: adId },
@@ -123,6 +144,26 @@ async function ensureOwner(prisma: Prisma.TransactionClient | Prisma.DefaultPris
 
   if (ad.advertiserId !== userId) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissao para alterar este anuncio." });
+  }
+}
+
+async function ensureImageBlobsExist(
+  prisma: Prisma.TransactionClient | Prisma.DefaultPrismaClient,
+  pictures?: Array<{ blobId?: number }>,
+) {
+  const blobIds = Array.from(new Set((pictures ?? []).map((picture) => picture.blobId).filter(Boolean))) as number[];
+
+  if (!blobIds.length) {
+    return;
+  }
+
+  const existingBlobIds = await prisma.imageBlob.findMany({
+    where: { id: { in: blobIds } },
+    select: { id: true },
+  });
+
+  if (existingBlobIds.length !== blobIds.length) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Uma ou mais imagens enviadas sao invalidas." });
   }
 }
 
@@ -150,11 +191,13 @@ export const productRouter = router({
       };
     }
 
-    return ctx.prisma.advertisement.findMany({
+    const ads = await ctx.prisma.advertisement.findMany({
       where,
       orderBy: { createdAt: "desc" },
       select: advertisementSelect,
     });
+
+    return ads.map(serializeAdvertisement);
   }),
 
   byId: publicProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ ctx, input }) => {
@@ -172,15 +215,17 @@ export const productRouter = router({
       throw new TRPCError({ code: "NOT_FOUND", message: "Anuncio nao encontrado." });
     }
 
-    return ad;
+    return serializeAdvertisement(ad);
   }),
 
   myAds: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.advertisement.findMany({
+    const ads = await ctx.prisma.advertisement.findMany({
       where: { advertiserId: ctx.user.id },
       orderBy: { createdAt: "desc" },
       select: advertisementSelect,
     });
+
+    return ads.map(serializeAdvertisement);
   }),
 
   create: protectedProcedure.input(createProductInputSchema).mutation(async ({ ctx, input }) => {
@@ -193,7 +238,9 @@ export const productRouter = router({
       throw new TRPCError({ code: "BAD_REQUEST", message: "Categoria invalida." });
     }
 
-    return ctx.prisma.advertisement.create({
+    await ensureImageBlobsExist(ctx.prisma, input.pictures);
+
+    const createdAd = await ctx.prisma.advertisement.create({
       data: {
         advertiserId: ctx.user.id,
         title: input.title,
@@ -203,12 +250,17 @@ export const productRouter = router({
         categoryId: input.categoryId,
         pictures: input.pictures?.length
           ? {
-              create: input.pictures.map((url) => ({ url })),
+              create: input.pictures.map((picture) => ({
+                url: picture.url,
+                blobId: picture.blobId,
+              })),
             }
           : undefined,
       },
       select: advertisementSelect,
     });
+
+    return serializeAdvertisement(createdAd);
   }),
 
   update: protectedProcedure.input(updateProductInputSchema).mutation(async ({ ctx, input }) => {
@@ -225,6 +277,10 @@ export const productRouter = router({
       }
     }
 
+    if (input.pictures !== undefined) {
+      await ensureImageBlobsExist(ctx.prisma, input.pictures);
+    }
+
     const data: Prisma.AdvertisementUpdateInput = {};
 
     if (input.title !== undefined) data.title = input.title;
@@ -235,7 +291,12 @@ export const productRouter = router({
     if (input.status !== undefined) data.status = input.status;
 
     if (input.pictures !== undefined) {
-      return ctx.prisma.$transaction(async (tx) => {
+      const previousPictures = await ctx.prisma.advertisementPicture.findMany({
+        where: { advertisementId: input.id },
+        select: { blobId: true },
+      });
+
+      const updatedAd = await ctx.prisma.$transaction(async (tx) => {
         await tx.advertisementPicture.deleteMany({
           where: { advertisementId: input.id },
         });
@@ -246,38 +307,56 @@ export const productRouter = router({
             ...data,
             pictures: input.pictures?.length
               ? {
-                  create: input.pictures.map((url) => ({ url })),
+                  create: input.pictures.map((picture) => ({
+                    url: picture.url,
+                    blobId: picture.blobId,
+                  })),
                 }
               : undefined,
           },
           select: advertisementSelect,
         });
       });
+
+      await Promise.all(previousPictures.map((picture) => deleteImageBlobIfUnused(ctx.prisma, picture.blobId)));
+
+      return serializeAdvertisement(updatedAd);
     }
 
-    return ctx.prisma.advertisement.update({
+    const updatedAd = await ctx.prisma.advertisement.update({
       where: { id: input.id },
       data,
       select: advertisementSelect,
     });
+
+    return serializeAdvertisement(updatedAd);
   }),
 
   setStatus: protectedProcedure.input(setStatusInputSchema).mutation(async ({ ctx, input }) => {
     await ensureOwner(ctx.prisma, input.id, ctx.user.id);
 
-    return ctx.prisma.advertisement.update({
+    const updatedAd = await ctx.prisma.advertisement.update({
       where: { id: input.id },
       data: { status: input.status },
       select: advertisementSelect,
     });
+
+    return serializeAdvertisement(updatedAd);
   }),
 
   delete: protectedProcedure.input(deleteProductInputSchema).mutation(async ({ ctx, input }) => {
     await ensureOwner(ctx.prisma, input.id, ctx.user.id);
 
+    const existingPictures = await ctx.prisma.advertisementPicture.findMany({
+      where: { advertisementId: input.id },
+      select: { blobId: true },
+    });
+
     await ctx.prisma.advertisement.delete({
       where: { id: input.id },
     });
+
+    await Promise.all(existingPictures.map((picture) => deleteImageBlobIfUnused(ctx.prisma, picture.blobId)));
 
     return { success: true };
   }),

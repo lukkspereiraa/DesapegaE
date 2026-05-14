@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearAuthSession, getAuthSession } from '../lib/session';
 import { trpc } from '../lib/trpc';
@@ -7,8 +7,13 @@ const UserAvatar: React.FC = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [temaClaro, setTemaClaro] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
   const session = getAuthSession();
   const user = session?.user;
+
+  useEffect(() => {
+    setAvatarBroken(false);
+  }, [user?.avatarUrl]);
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSettled: () => {
@@ -43,8 +48,17 @@ const UserAvatar: React.FC = () => {
         onClick={() => setOpen(!open)}
         className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-liquid-purple to-electric-blue shadow-[0_0_20px_rgba(168,85,247,0.6)]"
       >
-        <div className="w-full h-full rounded-full bg-[#11142d] flex items-center justify-center text-white font-black">
-          {initials}
+        <div className="w-full h-full rounded-full bg-[#11142d] flex items-center justify-center text-white font-black overflow-hidden">
+          {user?.avatarUrl && !avatarBroken ? (
+            <img
+              src={user.avatarUrl}
+              alt={user.name}
+              className="w-full h-full object-cover"
+              onError={() => setAvatarBroken(true)}
+            />
+          ) : (
+            initials
+          )}
         </div>
       </button>
 

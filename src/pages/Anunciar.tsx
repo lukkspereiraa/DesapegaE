@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Image, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ImagePlus, MapPin, Trash2 } from 'lucide-react';
 import BotaoGenerico from '../components/BotaoGenerico';
 import { isAuthenticated } from '../lib/session';
 import { trpc } from '../lib/trpc';
+import { uploadProductImages } from '../lib/uploads';
 
 const categoryOptions = [
   { id: 1, label: 'Tecnologia' },
@@ -15,14 +16,36 @@ const categoryOptions = [
 const categoryIdByName = Object.fromEntries(categoryOptions.map((option) => [option.label, option.id]));
 const categoryNameById = Object.fromEntries(categoryOptions.map((option) => [option.id, option.label]));
 
-const parsePictureUrls = (value: string) => value
-  .split(/[\n,]+/)
-  .map((item) => item.trim())
-  .filter(Boolean);
-
 type EditLocationState = {
   productId?: number;
 };
+
+type ProductImageItem = {
+  id: string;
+  url: string;
+  blobId?: number;
+  file?: File;
+  isNew: boolean;
+};
+
+const maxProductImages = 10;
+const fallbackProductImage = 'https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=800';
+
+function createImageItemId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function revokePreviewUrlIfNeeded(item: ProductImageItem): void {
+  if (item.isNew && item.url.startsWith('blob:')) {
+    URL.revokeObjectURL(item.url);
+  }
+}
+
+function revokePreviewUrls(items: ProductImageItem[]): void {
+  for (const item of items) {
+    revokePreviewUrlIfNeeded(item);
+  }
+}
 
 const Anunciar: React.FC = () => {
   const navigate = useNavigate();
@@ -42,10 +65,12 @@ const Anunciar: React.FC = () => {
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
-  const [urlsFotos, setUrlsFotos] = useState('');
+  const [imageItems, setImageItems] = useState<ProductImageItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const imageItemsRef = useRef<ProductImageItem[]>([]);
 
   const productQuery = trpc.product.byId.useQuery(
     { id: productIdFromState },
@@ -84,6 +109,16 @@ const Anunciar: React.FC = () => {
   }, [navigate]);
 
   useEffect(() => {
+    imageItemsRef.current = imageItems;
+  }, [imageItems]);
+
+  useEffect(() => {
+    return () => {
+      revokePreviewUrls(imageItemsRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!productQuery.data) {
       return;
     }
@@ -91,10 +126,78 @@ const Anunciar: React.FC = () => {
     setTitulo(productQuery.data.title);
     setDescricao(productQuery.data.description);
     setValor((productQuery.data.price / 100).toString());
-    setUrlsFotos(productQuery.data.pictures.map((picture) => picture.url).join('\n'));
+    setImageItems((current) => {
+      revokePreviewUrls(current);
+
+      return productQuery.data.pictures.map((picture) => ({
+        id: `existing-${picture.id}`,
+        url: picture.url,
+        blobId: picture.blobId ?? undefined,
+        isNew: false,
+      }));
+    });
     setEstado(productQuery.data.conditions || 'Seminovo');
     setTipo(categoryNameById[productQuery.data.categoryId] ?? 'Tecnologia');
   }, [productQuery.data]);
+
+  const handleSelectImages = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(event.target.files ?? []);
+    event.target.value = '';
+
+    if (!selectedFiles.length) {
+      return;
+    }
+
+    setError(null);
+
+    setImageItems((current) => {
+      const remainingSlots = maxProductImages - current.length;
+      if (remainingSlots <= 0) {
+        setError(`Voce pode adicionar no maximo ${maxProductImages} imagens.`);
+        return current;
+      }
+
+      const filesToAdd = selectedFiles.slice(0, remainingSlots);
+      if (filesToAdd.length < selectedFiles.length) {
+        setError(`Limite de ${maxProductImages} imagens atingido. Apenas ${filesToAdd.length} imagem(ns) adicionada(s).`);
+      }
+
+      const newItems = filesToAdd.map((file) => ({
+        id: `new-${createImageItemId()}`,
+        url: URL.createObjectURL(file),
+        file,
+        isNew: true,
+      }));
+
+      return [...current, ...newItems];
+    });
+  };
+
+  const handleRemoveImage = (itemId: string) => {
+    setImageItems((current) => {
+      const imageToRemove = current.find((item) => item.id === itemId);
+      if (!imageToRemove) {
+        return current;
+      }
+
+      revokePreviewUrlIfNeeded(imageToRemove);
+      return current.filter((item) => item.id !== itemId);
+    });
+  };
+
+  const handleMoveImage = (currentIndex: number, direction: 'left' | 'right') => {
+    setImageItems((current) => {
+      const nextIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1;
+      if (nextIndex < 0 || nextIndex >= current.length) {
+        return current;
+      }
+
+      const reordered = [...current];
+      const [movedItem] = reordered.splice(currentIndex, 1);
+      reordered.splice(nextIndex, 0, movedItem);
+      return reordered;
+    });
+  };
 
   const handleSubmit = async () => {
     if (submitting) return;
@@ -121,21 +224,58 @@ const Anunciar: React.FC = () => {
       return;
     }
 
-    const categoryId = categoryIdByName[tipo] ?? 1;
-    const pictures = parsePictureUrls(urlsFotos);
-
-    const payload = {
-      title: tituloNormalizado,
-      description: descricaoNormalizada,
-      price: Math.round(valorNormalizado * 100),
-      conditions: estado,
-      categoryId,
-      pictures: pictures.length ? pictures : undefined,
-    };
-
-    setSubmitting(true);
-
     try {
+      setSubmitting(true);
+
+      const categoryId = categoryIdByName[tipo] ?? 1;
+      const newImagesToUpload = imageItems
+        .filter((item) => item.isNew && item.file)
+        .map((item) => item.file as File);
+
+      const uploadedNewImages = newImagesToUpload.length
+        ? await uploadProductImages(newImagesToUpload)
+        : [];
+
+      let uploadCursor = 0;
+      const orderedPictures = imageItems.map((item) => {
+        if (item.isNew) {
+          const uploadedImage = uploadedNewImages[uploadCursor];
+          uploadCursor += 1;
+
+          if (!uploadedImage) {
+            throw new Error('Falha ao processar o upload das imagens.');
+          }
+
+          return uploadedImage;
+        }
+
+        return {
+          url: item.url,
+          blobId: item.blobId,
+        };
+      });
+
+      const picturesPayload = isEditMode
+        ? orderedPictures
+        : orderedPictures.length
+          ? orderedPictures
+          : undefined;
+
+      if (!isEditMode && !picturesPayload?.length) {
+        setError('Adicione pelo menos uma imagem para o anuncio.');
+        setSubmitting(false);
+        return;
+      }
+
+      const payload = {
+        title: tituloNormalizado,
+        description: descricaoNormalizada,
+        price: Math.round(valorNormalizado * 100),
+        conditions: estado,
+        categoryId,
+        pictures: picturesPayload,
+      };
+
       if (isEditMode) {
         await updateProduct.mutateAsync({
           id: productIdFromState,
@@ -236,19 +376,94 @@ const Anunciar: React.FC = () => {
         <label className="text-white/50 text-[11px] font-black mb-1">
           Galeria Visual
         </label>
-        <div className="relative mb-4">
-          <div className="absolute left-4 top-3 text-white/40">
-            <Image size={18} />
-          </div>
-          <textarea
-            placeholder="Cole links das fotos separados por virgula ou quebra de linha"
-            value={urlsFotos}
-            onChange={(event) => setUrlsFotos(event.target.value)}
-            className="h-[80px] w-full rounded-xl px-10 py-3
-            bg-[#111735]/90 border border-dashed border-white/25
-            text-white text-[12px] font-black placeholder-white/40 outline-none
-            resize-none"
+        <div className="mb-4 rounded-xl border border-dashed border-white/25 bg-[#111735]/90 p-3">
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleSelectImages}
           />
+
+          <button
+            type="button"
+            onClick={() => imageInputRef.current?.click()}
+            className="w-full h-[52px] rounded-xl border border-white/25 flex items-center justify-center gap-3 text-white hover:bg-white/5 transition-all"
+          >
+            <ImagePlus size={18} />
+            <span className="text-[12px] font-black">Adicionar fotos do dispositivo</span>
+          </button>
+
+          <p className="mt-2 text-white/65 text-[11px] font-black">
+            {imageItems.length}/{maxProductImages} imagem(ns). Use as setas para mudar a ordem e a lixeira para remover.
+          </p>
+
+          {imageItems.length === 0 ? (
+            <p className="mt-3 text-white/45 text-[11px] font-black text-center border border-white/10 rounded-xl py-5 px-3">
+              Nenhuma imagem adicionada ainda.
+            </p>
+          ) : (
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {imageItems.map((item, index) => (
+                <div key={item.id} className="rounded-xl overflow-hidden border border-white/15 bg-[#0d1435]">
+                  <div className="relative aspect-square">
+                    <img
+                      src={item.url}
+                      alt={`Imagem ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(event) => {
+                        const image = event.currentTarget;
+                        image.onerror = null;
+                        image.src = fallbackProductImage;
+                      }}
+                    />
+
+                    <span className="absolute top-2 left-2 px-2 py-1 rounded-lg text-[10px] font-black bg-black/65 text-white">
+                      #{index + 1}
+                    </span>
+
+                    {item.isNew && (
+                      <span className="absolute top-2 right-2 px-2 py-1 rounded-lg text-[10px] font-black bg-electric-blue/80 text-white">
+                        Nova
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1 p-2 border-t border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveImage(index, 'left')}
+                      disabled={index === 0}
+                      className="h-8 rounded-lg border border-white/20 text-white flex items-center justify-center disabled:opacity-35 disabled:cursor-not-allowed hover:bg-white/10 transition-all"
+                      title="Mover para a esquerda"
+                    >
+                      <ChevronLeft size={15} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleMoveImage(index, 'right')}
+                      disabled={index === imageItems.length - 1}
+                      className="h-8 rounded-lg border border-white/20 text-white flex items-center justify-center disabled:opacity-35 disabled:cursor-not-allowed hover:bg-white/10 transition-all"
+                      title="Mover para a direita"
+                    >
+                      <ChevronRight size={15} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(item.id)}
+                      className="h-8 rounded-lg border border-red-300/35 text-red-200 flex items-center justify-center hover:bg-red-500/15 transition-all"
+                      title="Remover imagem"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* DROPDOWNS */}
