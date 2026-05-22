@@ -7,10 +7,7 @@ import Login from './pages/Login/Login';
 import Anunciar from './pages/Anunciar/Anunciar';
 import Perfil from './pages/Perfil/Perfil';
 import EditarPerfil from './pages/EditarPerfil/EditarPerfil';
-<<<<<<< HEAD
 import DadosPrivados from './pages/DadosPrivados/DadosPrivados';
-=======
->>>>>>> 0471e8603a6f2fce95e821fda133f5fcdc37a9ed
 import { isAuthenticated } from './lib/session';
 import EditarProduto from './pages/EditarProduto/EditarProduto';
 
@@ -64,7 +61,6 @@ function App() {
             </RequireAuth>
           }
         />
-<<<<<<< HEAD
 
         <Route
           path="/dados-privados"
@@ -74,8 +70,6 @@ function App() {
             </RequireAuth>
           }
         />
-=======
->>>>>>> 0471e8603a6f2fce95e821fda133f5fcdc37a9ed
         <Route
           path="/editar-produto"
           element={

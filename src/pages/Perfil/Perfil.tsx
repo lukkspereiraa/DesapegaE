@@ -250,7 +250,6 @@ const Perfil: React.FC = () => {
 
           </div>
 
-<<<<<<< HEAD
         <div className="perfil-header-actions">
 
           <button
@@ -264,8 +263,6 @@ const Perfil: React.FC = () => {
             Meus Dados
           </button>
 
-=======
->>>>>>> 0471e8603a6f2fce95e821fda133f5fcdc37a9ed
           <button
             onClick={() =>
               navigate(
@@ -279,11 +276,8 @@ const Perfil: React.FC = () => {
 
         </div>
 
-<<<<<<< HEAD
         </div>
 
-=======
->>>>>>> 0471e8603a6f2fce95e821fda133f5fcdc37a9ed
         <div className="perfil-section-header">
 
           <h2 className="perfil-section-title">
