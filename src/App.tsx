@@ -1,13 +1,15 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
-import Home from './pages/Home';
-import DetalheProduto from './pages/DetalheProduto';
-import Cadastro from './pages/Cadastro';
-import Login from './pages/Login';
-import Anunciar from './pages/Anunciar';
-import Perfil from './pages/Perfil';
-import EditarPerfil from './pages/EditarPerfil';
+import Home from "./pages/Home/Home";
+import DetalheProduto from './pages/DetalhesProduto/DetalheProduto';
+import Cadastro from './pages/Cadastro/Cadastro';
+import Login from './pages/Login/Login';
+import Anunciar from './pages/Anunciar/Anunciar';
+import Perfil from './pages/Perfil/Perfil';
+import EditarPerfil from './pages/EditarPerfil/EditarPerfil';
+import DadosPrivados from './pages/DadosPrivados/DadosPrivados';
 import { isAuthenticated } from './lib/session';
+import EditarProduto from './pages/EditarProduto/EditarProduto';
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const location = useLocation();
@@ -56,6 +58,23 @@ function App() {
           element={
             <RequireAuth>
               <EditarPerfil />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/dados-privados"
+          element={
+            <RequireAuth>
+              <DadosPrivados />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/editar-produto"
+          element={
+            <RequireAuth>
+              <EditarProduto />
             </RequireAuth>
           }
         />

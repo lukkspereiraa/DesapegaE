@@ -1,0 +1,320 @@
+.anunciar-page {
+  position: relative;
+
+  min-height: 100vh;
+  width: 100%;
+
+  background: #020513;
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.anunciar-voltar {
+  position: absolute;
+
+  top: 42px;
+  left: 42px;
+
+  z-index: 20;
+
+  border: none;
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.35);
+
+  font-size: 18px;
+
+  cursor: pointer;
+}
+
+.anunciar-glow-left {
+  position: absolute;
+
+  left: 18%;
+  top: 28%;
+
+  width: 360px;
+  height: 360px;
+
+  border-radius: 50%;
+
+  background: rgba(168, 85, 247, 0.35);
+
+  filter: blur(120px);
+}
+
+.anunciar-glow-right {
+  position: absolute;
+
+  right: 18%;
+  bottom: 20%;
+
+  width: 360px;
+  height: 360px;
+
+  border-radius: 50%;
+
+  background: rgba(168, 85, 247, 0.35);
+
+  filter: blur(120px);
+}
+
+.anunciar-card {
+  position: relative;
+
+  z-index: 10;
+
+  width: 590px;
+  min-height: 640px;
+
+  padding: 36px 56px;
+
+  border-radius: 72px;
+
+  background: rgba(25, 27, 82, 0.88);
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  box-shadow: 0 45px 90px rgba(0, 0, 0, 0.85);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.anunciar-title {
+  text-align: center;
+
+  color: rgba(255, 255, 255, 0.78);
+
+  font-size: 32px;
+  font-weight: 900;
+
+  margin-bottom: 8px;
+}
+
+.anunciar-label {
+  color: rgba(255, 255, 255, 0.55);
+
+  font-size: 11px;
+  font-weight: 900;
+
+  margin-bottom: 8px;
+}
+
+.anunciar-input {
+  height: 52px;
+
+  padding: 0 28px;
+
+  margin-bottom: 18px;
+
+  border-radius: 12px;
+
+  border: 1px solid rgba(168, 85, 247, 0.9);
+
+  background: rgba(36, 29, 70, 0.95);
+
+  color: white;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  outline: none;
+
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.7);
+}
+
+.anunciar-input::placeholder {
+  color: white;
+}
+
+.anunciar-gps-button {
+  height: 52px;
+
+  margin-bottom: 18px;
+
+  border-radius: 12px;
+
+  border: 2px dashed #a855f7;
+
+  background: transparent;
+
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.anunciar-hidden {
+  display: none;
+}
+
+.anunciar-upload {
+  height: 60px;
+
+  margin-bottom: 22px;
+
+  border-radius: 12px;
+
+  border: 1px dashed rgba(255, 255, 255, 0.45);
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.65);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.anunciar-row {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 70px;
+
+  margin-bottom: 18px;
+}
+
+.anunciar-select-area {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.anunciar-select {
+  height: 45px;
+
+  padding: 0 14px;
+
+  border-radius: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.45);
+
+  background: rgba(17, 23, 53, 0.95);
+
+  color: rgba(255, 255, 255, 0.72);
+
+  font-size: 12px;
+  font-weight: 900;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.anunciar-select:hover {
+  border-color: rgba(168, 85, 247, 0.7);
+
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.35);
+}
+
+.anunciar-menu {
+  position: absolute;
+
+  bottom: 52px;
+  left: 0;
+
+  width: 100%;
+
+  z-index: 50;
+
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(168, 85, 247, 0.98),
+    rgba(124, 58, 237, 0.98)
+  );
+
+  box-shadow: 0 0 35px rgba(168, 85, 247, 0.65);
+}
+
+.anunciar-menu button {
+  width: 100%;
+
+  padding: 14px 18px;
+
+  border: none;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  background: transparent;
+
+  color: white;
+
+  text-align: left;
+
+  font-size: 13px;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.anunciar-menu button:last-child {
+  border-bottom: none;
+}
+
+.anunciar-menu button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.anunciar-submit {
+  margin-top: 12px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.anunciar-botao-publicar {
+  width: 360px;
+  height: 58px;
+
+  border-radius: 12px;
+
+  font-size: 28px;
+  font-weight: 900;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.anunciar-error {
+  margin-top: 16px;
+
+  text-align: center;
+
+  color: #f87171;
+
+  font-size: 14px;
+  font-weight: 900;
+}

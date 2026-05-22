@@ -1,0 +1,388 @@
+.dados-page {
+  min-height: 100vh;
+  background: #050816;
+
+  overflow: hidden;
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+
+  font-family: 'Poppins',
+    sans-serif;
+}
+
+.bg-blur {
+  position: absolute;
+
+  width: 500px;
+  height: 500px;
+
+  border-radius: 50%;
+
+  filter: blur(180px);
+
+  opacity: 0.22;
+}
+
+.bg-blur.purple {
+  background: #7f4dff;
+
+  top: -180px;
+  left: -180px;
+}
+
+.bg-blur.blue {
+  background: #3478ff;
+
+  bottom: -180px;
+  right: -180px;
+}
+
+.dados-container {
+  width: 100%;
+  max-width: 1080px;
+
+  padding: 42px;
+
+  position: relative;
+  z-index: 2;
+
+  border-radius: 34px;
+
+  background: rgba(13, 19, 45, 0.9);
+
+  border: 1px solid
+    rgba(88, 144, 255, 0.45);
+
+  backdrop-filter: blur(20px);
+
+  box-shadow:
+    0 0 40px
+      rgba(60, 120, 255, 0.22),
+    inset 0 0 20px
+      rgba(255,255,255,0.02);
+}
+
+.dados-top {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom: 50px;
+
+  gap: 20px;
+
+  flex-wrap: wrap;
+}
+
+.dados-title {
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+}
+
+.shield-box {
+  width: 70px;
+  height: 70px;
+
+  border-radius: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #9d63ff;
+
+  background: rgba(255,255,255,0.04);
+
+  border: 1px solid
+    rgba(255,255,255,0.08);
+
+  box-shadow:
+    0 0 22px
+    rgba(155,92,255,0.18);
+}
+
+.dados-title h1 {
+  color: white;
+
+  font-size: 2rem;
+
+  font-weight: 800;
+
+  margin-bottom: 6px;
+}
+
+.dados-title p {
+  color: #c4c8dd;
+
+  font-size: 0.94rem;
+}
+
+.mostrar-btn {
+  height: 52px;
+
+  padding: 0 24px;
+
+  border: none;
+
+  border-radius: 16px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  background: rgba(255,255,255,0.08);
+
+  color: white;
+
+  font-size: 0.95rem;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.25s;
+}
+
+.mostrar-btn:hover {
+  background: rgba(255,255,255,0.13);
+}
+
+.dados-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(340px, 1fr)
+    );
+
+  gap: 42px;
+}
+
+.dados-coluna h2 {
+  color: white;
+
+  font-size: 1.55rem;
+
+  margin-bottom: 22px;
+}
+
+.dados-card {
+  background: rgba(255,255,255,0.05);
+
+  border: 1px solid
+    rgba(255,255,255,0.08);
+
+  border-radius: 18px;
+
+  padding: 18px;
+
+  margin-bottom: 18px;
+
+  transition: 0.25s;
+}
+
+.dados-card:hover {
+  border-color:
+    rgba(145, 100, 255, 0.45);
+
+  box-shadow:
+    0 0 22px
+    rgba(145,100,255,0.12);
+}
+
+.dados-card label {
+  display: block;
+
+  margin-bottom: 10px;
+
+  color: #bfc5e0;
+
+  font-size: 0.8rem;
+
+  font-weight: 700;
+
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+}
+
+.dados-card span {
+  color: #c291ff;
+
+  font-size: 1.08rem;
+
+  font-weight: 700;
+}
+
+.dados-input {
+  width: 100%;
+
+  background: transparent;
+
+  border: none;
+
+  outline: none;
+
+  color: white;
+
+  font-size: 1rem;
+}
+
+.dados-actions {
+  position: relative;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  margin-top: 60px;
+}
+
+.dados-actions-right {
+  display: flex;
+
+  gap: 18px;
+}
+
+.dados-actions button {
+  height: 58px;
+
+  border: none;
+
+  border-radius: 18px;
+
+  padding: 0 28px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 10px;
+
+  font-size: 1rem;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.25s;
+}
+
+.btn-voltar {
+  position: absolute;
+
+  left: 0;
+
+  bottom: 0;
+
+  min-width: 170px;
+
+  background: linear-gradient(
+    90deg,
+    #825dff,
+    #4c8fff
+  );
+
+  color: white;
+
+  box-shadow:
+    0 0 20px
+    rgba(85,130,255,0.3);
+}
+
+.btn-senha {
+  min-width: 220px;
+
+  background: #f5f0d9;
+
+  color: #6a56cb;
+
+  box-shadow:
+    0 0 20px
+    rgba(255,255,255,0.12);
+}
+
+.btn-editar {
+  min-width: 240px;
+
+  background: linear-gradient(
+    90deg,
+    #9f63ff,
+    #5f92ff
+  );
+
+  color: white;
+
+  box-shadow:
+    0 0 20px
+    rgba(125,120,255,0.3);
+}
+
+.dados-actions button:hover {
+  transform: translateY(-3px);
+
+  opacity: 0.95;
+}
+
+.dados-error {
+  color: #ff7d7d;
+
+  font-weight: 600;
+
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .dados-container {
+    padding: 28px;
+  }
+
+  .dados-top {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .dados-title h1 {
+    font-size: 1.55rem;
+  }
+
+  .dados-actions {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 16px;
+  }
+
+  .dados-actions-right {
+    flex-direction: column;
+  }
+
+  .btn-voltar {
+    position: static;
+
+    width: 100%;
+  }
+
+  .dados-actions button {
+    width: 100%;
+  }
+} 

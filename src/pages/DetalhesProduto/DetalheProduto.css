@@ -1,0 +1,209 @@
+.detalhe-page {
+  position: relative;
+
+  min-height: 100vh;
+
+  overflow: hidden;
+
+  padding-bottom: 48px;
+
+  background: #08080c;
+  color: white;
+
+  font-family: sans-serif;
+
+  selection-background-color: #3b82f6;
+}
+
+.detalhe-purple-glow {
+  position: absolute;
+
+  top: -10%;
+  left: -10%;
+
+  width: 500px;
+  height: 500px;
+
+  border-radius: 50%;
+
+  background: rgba(168, 85, 247, 0.25);
+
+  filter: blur(120px);
+
+  pointer-events: none;
+}
+
+.detalhe-blue-glow {
+  position: absolute;
+
+  bottom: -10%;
+  left: -5%;
+
+  width: 400px;
+  height: 400px;
+
+  border-radius: 50%;
+
+  background: rgba(59, 130, 246, 0.2);
+
+  filter: blur(100px);
+
+  pointer-events: none;
+}
+
+.detalhe-container {
+  position: relative;
+  z-index: 10;
+
+  max-width: 1150px;
+
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.detalhe-header-wrapper {
+  margin-bottom: 8px;
+}
+
+.detalhe-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  gap: 32px;
+
+  padding: 24px;
+
+  border-radius: 32px;
+
+  background: rgba(16, 16, 24, 0.7);
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  backdrop-filter: blur(24px);
+
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8);
+
+  animation: detalheFadeZoom 0.7s ease;
+}
+
+.detalhe-galeria {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.detalhe-info-area {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  padding-top: 0;
+}
+
+.detalhe-vendedor-wrapper {
+  margin-top: -12px;
+}
+
+.detalhe-acoes-wrapper {
+  margin-top: -8px;
+}
+
+.detalhe-status-page {
+  min-height: 100vh;
+
+  padding: 24px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  background: #08080c;
+  color: white;
+
+  font-family: sans-serif;
+}
+
+.detalhe-status-title {
+  margin-bottom: 16px;
+
+  color: rgba(255, 255, 255, 0.5);
+
+  font-size: 40px;
+  font-weight: 900;
+
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  font-style: italic;
+}
+
+.detalhe-status-button {
+  padding: 12px 32px;
+
+  border: none;
+  border-radius: 999px;
+
+  background: #3b82f6;
+
+  color: white;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.detalhe-status-button:hover {
+  transform: scale(1.05);
+}
+
+.detalhe-loading {
+  color: rgba(255, 255, 255, 0.6);
+
+  font-size: 20px;
+  font-weight: 900;
+}
+
+@keyframes detalheFadeZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (min-width: 768px) {
+  .detalhe-container {
+    padding: 24px;
+  }
+
+  .detalhe-card {
+    padding: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .detalhe-card {
+    flex-direction: row;
+  }
+
+  .detalhe-galeria {
+    width: 53%;
+  }
+
+  .detalhe-info-area {
+    flex: 1;
+  }
+}

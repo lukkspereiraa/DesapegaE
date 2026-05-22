@@ -5,7 +5,7 @@ import superjson from "superjson";
 import type { AppRouter } from "../server/routers";
 import { getAccessToken } from "./session";
 
-const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3333";
+export const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3333";
 
 export const trpc = createTRPCReact<AppRouter>();
 

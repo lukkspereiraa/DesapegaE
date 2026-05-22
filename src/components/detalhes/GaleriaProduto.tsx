@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 interface GaleriaProdutoProps {
-  imagemPrincipal: string;
+  imagens: string[];
   titulo: string;
 }
 
-const GaleriaProduto: React.FC<GaleriaProdutoProps> = ({ imagemPrincipal, titulo }) => {
-  const [fotoExibida, setFotoExibida] = useState<string>(imagemPrincipal);
+const fallbackImage = 'https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=800';
 
-  const outrasFotos: string[] = [
-    imagemPrincipal,
-    "https://images.pexels.com/photos/4065887/pexels-photo-4065887.jpeg?auto=compress&cs=tinysrgb&w=400",
-    "https://images.pexels.com/photos/4065890/pexels-photo-4065890.jpeg?auto=compress&cs=tinysrgb&w=400",
-  ];
+const GaleriaProduto: React.FC<GaleriaProdutoProps> = ({ imagens, titulo }) => {
+  const outrasFotos = useMemo(() => {
+    const validImages = imagens.filter((image) => image.trim().length > 0);
+    return validImages.length > 0 ? validImages : [fallbackImage];
+  }, [imagens]);
+
+  const [fotoExibida, setFotoExibida] = useState<string>(outrasFotos[0]);
+
+  useEffect(() => {
+    setFotoExibida(outrasFotos[0]);
+  }, [outrasFotos]);
 
   return (
     <div className="flex-1 flex flex-col gap-6">
@@ -22,6 +27,11 @@ const GaleriaProduto: React.FC<GaleriaProdutoProps> = ({ imagemPrincipal, titulo
           src={fotoExibida}
           className="w-full h-full object-cover transition-all duration-500"
           alt={titulo}
+          onError={(event) => {
+            const image = event.currentTarget;
+            image.onerror = null;
+            image.src = fallbackImage;
+          }}
         />
         <div className="absolute inset-0 bg-linear-to-t from-[#050510]/40 to-transparent pointer-events-none" />
       </div>
@@ -38,7 +48,16 @@ const GaleriaProduto: React.FC<GaleriaProdutoProps> = ({ imagemPrincipal, titulo
                 : 'border-white/5 bg-white/3 hover:border-white/20'
               }`}
           >
-            <img src={foto} className="w-full h-full object-cover rounded-[20px]" alt={`Miniatura ${index}`} />
+            <img
+              src={foto}
+              className="w-full h-full object-cover rounded-[20px]"
+              alt={`Miniatura ${index}`}
+              onError={(event) => {
+                const image = event.currentTarget;
+                image.onerror = null;
+                image.src = fallbackImage;
+              }}
+            />
           </button>
         ))}
       </div>

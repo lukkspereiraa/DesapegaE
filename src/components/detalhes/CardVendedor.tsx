@@ -1,26 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 
 interface CardVendedorProps {
   nome?: string;
   vendas?: string;
+  avatarUrl?: string | null;
 }
 
 const CardVendedor: React.FC<CardVendedorProps> = ({
   nome = "Lucas Pereira",
   vendas = "12",
+  avatarUrl,
 }) => {
+  const [avatarBroken, setAvatarBroken] = useState(false);
+
+  useEffect(() => {
+    setAvatarBroken(false);
+  }, [avatarUrl]);
+
+  const initials = nome
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((chunk) => chunk[0]?.toUpperCase() ?? '')
+    .join('') || 'U';
+
   return (
     <div className="flex items-center gap-5 py-6 mt-4 border-t border-white/5">
       {/* FOTO COM GLOW ROXO SUTIL */}
       <div className="relative shrink-0">
         <div className="w-16 h-16 rounded-full p-0.5 bg-linear-to-tr from-liquid-purple to-electric-blue shadow-[0_0_15px_rgba(151,71,255,0.3)]">
-          <div className="w-full h-full rounded-full bg-[#050508] p-0.5">
-            <img
-              src="https://github.com/lucas-pereira.png"
-              className="w-full h-full rounded-full object-cover"
-              alt={nome}
-            />
+          <div className="w-full h-full rounded-full bg-[#050508] p-0.5 flex items-center justify-center text-white font-black overflow-hidden">
+            {avatarUrl && !avatarBroken ? (
+              <img
+                src={avatarUrl}
+                className="w-full h-full rounded-full object-cover"
+                alt={nome}
+                onError={() => setAvatarBroken(true)}
+              />
+            ) : (
+              initials
+            )}
           </div>
         </div>
       </div>
