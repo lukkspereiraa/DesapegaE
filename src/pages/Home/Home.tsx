@@ -1,25 +1,38 @@
 import React, { useMemo, useState } from 'react';
-import BotaoFiltroMestre from '../components/home/BotaoFiltroMestre';
-import ModalFiltros from '../components/home/ModalFiltros';
-import CardProduto from '../components/home/CardProduto';
-import { trpc } from '../lib/trpc';
+
+import BotaoFiltroMestre from '../../components/home/BotaoFiltroMestre';
+import ModalFiltros from '../../components/home/ModalFiltros';
+import CardProduto from '../../components/home/CardProduto';
+
+import { trpc } from '../../lib/trpc';
 
 import {
-  X, Shirt, Armchair, Tv, LayoutGrid,
-  Sparkles, History, Clock, DollarSign,
+  X,
+  Shirt,
+  Armchair,
+  Tv,
+  LayoutGrid,
+  Sparkles,
+  History,
+  Clock,
+  DollarSign,
 } from 'lucide-react';
+
 import type { LucideIcon } from 'lucide-react';
 
-const fallbackImage = 'https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=400';
+import './Home.css';
+
+const fallbackImage =
+  'https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=400';
 
 const iconesFiltros: Record<string, LucideIcon> = {
-  "Roupas": Shirt,
-  "Móveis": Armchair,
-  "Eletrônicos": Tv,
-  "Todos": LayoutGrid,
-  "Novo": Sparkles,
-  "Usado": History,
-  "Seminovo": Clock,
+  Roupas: Shirt,
+  Móveis: Armchair,
+  Eletrônicos: Tv,
+  Todos: LayoutGrid,
+  Novo: Sparkles,
+  Usado: History,
+  Seminovo: Clock,
 };
 
 interface Produto {
@@ -33,19 +46,21 @@ interface Produto {
 }
 
 const formatLocation = (ad: {
-  advertiser: {
-    address: {
-      neighborhood: string;
-      city: {
-        name: string;
+  advertiser?: {
+    address?: {
+      neighborhood?: string;
+      city?: {
+        name?: string;
       };
     };
   };
 }) => {
   const neighborhood = ad.advertiser?.address?.neighborhood ?? '';
   const city = ad.advertiser?.address?.city?.name ?? '';
+
   const location = [neighborhood, city].filter(Boolean).join(', ');
-  return location || 'Localizacao nao informada';
+
+  return location || 'Localização não informada';
 };
 
 const normalize = (value: string) =>
@@ -55,13 +70,14 @@ const normalize = (value: string) =>
     .toLowerCase();
 
 const Home: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [filtrosAtivos, setFiltrosAtivos] = useState<string[]>([]);
 
   const productsQuery = trpc.product.listPublic.useQuery();
 
   const produtos = useMemo<Produto[]>(() => {
     const ads = productsQuery.data ?? [];
+
     return ads.map((ad) => ({
       id: ad.id,
       preco: Number.isFinite(ad.price) ? ad.price / 100 : 0,
@@ -75,27 +91,47 @@ const Home: React.FC = () => {
 
   const produtosFiltrados = useMemo(() => {
     const categoryFilters = filtrosAtivos.filter((filtro) =>
-      ['Roupas', 'Móveis', 'Eletrônicos', 'Todos'].includes(filtro),
-    );
-    const conditionFilters = filtrosAtivos.filter((filtro) =>
-      ['Novo', 'Usado', 'Seminovo'].includes(filtro),
+      ['Roupas', 'Móveis', 'Eletrônicos', 'Todos'].includes(filtro)
     );
 
-    const minFilter = filtrosAtivos.find((filtro) => filtro.startsWith('Min: R$'));
-    const maxFilter = filtrosAtivos.find((filtro) => filtro.startsWith('Max: R$'));
-    const minValue = minFilter ? Number(minFilter.replace('Min: R$', '').replace(',', '.')) : undefined;
-    const maxValue = maxFilter ? Number(maxFilter.replace('Max: R$', '').replace(',', '.')) : undefined;
+    const conditionFilters = filtrosAtivos.filter((filtro) =>
+      ['Novo', 'Usado', 'Seminovo'].includes(filtro)
+    );
+
+    const minFilter = filtrosAtivos.find((filtro) =>
+      filtro.startsWith('Min: R$')
+    );
+
+    const maxFilter = filtrosAtivos.find((filtro) =>
+      filtro.startsWith('Max: R$')
+    );
+
+    const minValue = minFilter
+      ? Number(minFilter.replace('Min: R$', '').replace(',', '.'))
+      : undefined;
+
+    const maxValue = maxFilter
+      ? Number(maxFilter.replace('Max: R$', '').replace(',', '.'))
+      : undefined;
 
     return produtos.filter((produto) => {
       if (categoryFilters.length > 0 && !categoryFilters.includes('Todos')) {
         const produtoCategoria = normalize(produto.categoria);
-        const matchCategoria = categoryFilters.some((category) => normalize(category) === produtoCategoria);
+
+        const matchCategoria = categoryFilters.some(
+          (category) => normalize(category) === produtoCategoria
+        );
+
         if (!matchCategoria) return false;
       }
 
       if (conditionFilters.length > 0) {
         const produtoCondicao = normalize(produto.condicao);
-        const matchCondicao = conditionFilters.some((condition) => normalize(condition) === produtoCondicao);
+
+        const matchCondicao = conditionFilters.some(
+          (condition) => normalize(condition) === produtoCondicao
+        );
+
         if (!matchCondicao) return false;
       }
 
@@ -112,16 +148,18 @@ const Home: React.FC = () => {
   }, [filtrosAtivos, produtos]);
 
   const removeFiltro = (filtro: string): void => {
-    if (filtro === 'all') setFiltrosAtivos([]);
-    else setFiltrosAtivos(filtrosAtivos.filter(f => f !== filtro));
+    if (filtro === 'all') {
+      setFiltrosAtivos([]);
+      return;
+    }
+
+    setFiltrosAtivos((prev) => prev.filter((item) => item !== filtro));
   };
 
   return (
-    <div className="container mx-auto px-6 py-8">
-
-      {/* 1. SEÇÃO DE FILTROS */}
-      <div className="w-full py-6 flex items-center gap-4">
-        <div className="relative">
+    <div className="home-container">
+      <div className="home-filtros-section">
+        <div className="home-filtro-wrapper">
           <BotaoFiltroMestre onClick={() => setIsModalOpen(!isModalOpen)} />
 
           <ModalFiltros
@@ -132,9 +170,10 @@ const Home: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1 flex-1">
+        <div className="home-filtros-ativos">
           {filtrosAtivos.map((filtro) => {
             let IconeExibir: LucideIcon = LayoutGrid;
+
             if (filtro.startsWith('Min:') || filtro.startsWith('Max:')) {
               IconeExibir = DollarSign;
             } else {
@@ -142,12 +181,18 @@ const Home: React.FC = () => {
             }
 
             return (
-              <div key={filtro} className="flex items-center gap-2 px-4 py-1.5 bg-liquid-purple/10 border border-liquid-purple/30 rounded-full whitespace-nowrap animate-in fade-in zoom-in duration-300">
-                <IconeExibir size={12} className="text-electric-blue" />
-                <span className="text-[11px] font-black text-white uppercase tracking-wider">
+              <div key={filtro} className="home-filtro-chip">
+                <IconeExibir size={12} className="home-filtro-icon" />
+
+                <span className="home-filtro-text">
                   {filtro}
                 </span>
-                <button onClick={() => removeFiltro(filtro)} className="text-white/40 hover:text-white cursor-pointer ml-1">
+
+                <button
+                  type="button"
+                  onClick={() => removeFiltro(filtro)}
+                  className="home-filtro-remove"
+                >
                   <X size={14} />
                 </button>
               </div>
@@ -155,15 +200,18 @@ const Home: React.FC = () => {
           })}
 
           {filtrosAtivos.length > 0 && (
-            <button onClick={() => removeFiltro('all')} className="text-[10px] font-black text-white/30 hover:text-white uppercase ml-2 border-b border-white/10 transition-colors">
+            <button
+              type="button"
+              onClick={() => removeFiltro('all')}
+              className="home-clear-filters"
+            >
               Limpar tudo
             </button>
           )}
         </div>
       </div>
 
-      {/* 2. GRID DE PRODUTOS */}
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="home-grid-produtos">
         {produtosFiltrados.map((produto) => (
           <CardProduto
             key={produto.id}
@@ -177,23 +225,24 @@ const Home: React.FC = () => {
       </div>
 
       {productsQuery.isLoading && (
-        <p className="mt-6 text-center text-white/50 text-sm font-black">
-          Carregando anuncios...
+        <p className="home-message">
+          Carregando anúncios...
         </p>
       )}
 
       {productsQuery.error && (
-        <p className="mt-6 text-center text-red-400 text-sm font-black">
+        <p className="home-error">
           {productsQuery.error.message}
         </p>
       )}
 
-      {!productsQuery.isLoading && !productsQuery.error && produtosFiltrados.length === 0 && (
-        <p className="mt-6 text-center text-white/40 text-sm font-black">
-          Nenhum anuncio encontrado.
-        </p>
-      )}
-
+      {!productsQuery.isLoading &&
+        !productsQuery.error &&
+        produtosFiltrados.length === 0 && (
+          <p className="home-empty">
+            Nenhum anúncio encontrado.
+          </p>
+        )}
     </div>
   );
 };
