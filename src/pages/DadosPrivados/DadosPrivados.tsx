@@ -313,7 +313,7 @@ const DadosPrivados: React.FC = () => {
             onClick={() =>
               navigate('/perfil')
             }
-            className="btn-voltar"
+            className="btn-voltar-dados"
           >
             <ArrowLeft size={18} />
             Voltar
