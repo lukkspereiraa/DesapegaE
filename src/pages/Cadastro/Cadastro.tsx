@@ -38,6 +38,11 @@ const Cadastro: React.FC = () => {
       return;
     }
 
+    if (senha.length < 6) {
+      setLocalError('Senha muito curta!!');
+      return;
+    }
+
     try {
       await registerMutation.mutateAsync({
         name: nome.trim(),
