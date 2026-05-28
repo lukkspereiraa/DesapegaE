@@ -6,10 +6,10 @@ import Cadastro from './pages/Cadastro/Cadastro';
 import Login from './pages/Login/Login';
 import Anunciar from './pages/Anunciar/Anunciar';
 import Perfil from './pages/Perfil/Perfil';
-import EditarPerfil from './pages/EditarPerfil/EditarPerfil';
-import DadosPrivados from './pages/DadosPrivados/DadosPrivados';
+import EditarPerfil from './pages/EditarPerfil/EditarPerfil';;
 import { isAuthenticated } from './lib/session';
 import EditarProduto from './pages/EditarProduto/EditarProduto';
+import DadosPrivados from './pages/DadosPrivados/DadosPrivados';
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   const location = useLocation();
@@ -70,6 +70,7 @@ function App() {
             </RequireAuth>
           }
         />
+
         <Route
           path="/editar-produto"
           element={

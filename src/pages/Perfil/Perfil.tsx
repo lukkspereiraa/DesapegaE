@@ -1,7 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
 import { useNavigate } from 'react-router-dom';
 
-import { clearAuthSession, getAuthSession } from '../../lib/session';
+import {
+  clearAuthSession,
+  getAuthSession,
+} from '../../lib/session';
+
 import { trpc } from '../../lib/trpc';
 
 import './Perfil.css';
@@ -16,7 +25,10 @@ const formatCurrency = (value: number) =>
   });
 
 const mapStatus = (status?: string) => {
-  if (status === 'Closed' || status === 'Blocked') {
+  if (
+    status === 'Closed' ||
+    status === 'Blocked'
+  ) {
     return 'VENDIDO' as const;
   }
 
@@ -184,7 +196,6 @@ const Perfil: React.FC = () => {
 
   return (
     <div className="perfil-page">
-
       <button
         onClick={() => navigate('/')}
         className="perfil-voltar"
@@ -204,13 +215,9 @@ const Perfil: React.FC = () => {
       <div className="perfil-glow-blue" />
 
       <div className="perfil-container">
-
         <div className="perfil-header-card">
-
           <div className="perfil-header-info">
-
             <div className="perfil-avatar">
-
               {user?.avatarUrl &&
               !avatarBroken ? (
                 <img
@@ -223,18 +230,15 @@ const Perfil: React.FC = () => {
               ) : (
                 userInitials
               )}
-
             </div>
 
             <div>
-
               <h1 className="perfil-nome">
                 {user?.name ??
                   'Carregando...'}
               </h1>
 
               <div className="perfil-info-row">
-
                 <span className="perfil-role">
                   {user?.role ??
                     'Advertiser'}
@@ -243,43 +247,32 @@ const Perfil: React.FC = () => {
                 <span className="perfil-vendas">
                   ★ 0.0 (0 Vendas)
                 </span>
-
               </div>
-
             </div>
-
           </div>
 
-        <div className="perfil-header-actions">
+          <div className="perfil-header-actions">
+            <button
+              onClick={() =>
+                navigate('/dados-privados')
+              }
+              className="perfil-dados-btn"
+            >
+              Meus Dados
+            </button>
 
-          <button
-            onClick={() =>
-              navigate(
-                '/dados-privados'
-              )
-            }
-            className="perfil-dados-btn"
-          >
-            Meus Dados
-          </button>
-
-          <button
-            onClick={() =>
-              navigate(
-                '/editar-perfil'
-              )
-            }
-            className="perfil-editar"
-          >
-            Editar Perfil
-          </button>
-
-        </div>
-
+            <button
+              onClick={() =>
+                navigate('/editar-perfil')
+              }
+              className="perfil-editar"
+            >
+              Editar Perfil
+            </button>
+          </div>
         </div>
 
         <div className="perfil-section-header">
-
           <h2 className="perfil-section-title">
             Meus Anúncios
           </h2>
@@ -292,7 +285,6 @@ const Perfil: React.FC = () => {
           >
             + Criar novo anúncio
           </button>
-
         </div>
 
         {profileQuery.error && (
@@ -305,13 +297,11 @@ const Perfil: React.FC = () => {
         )}
 
         <div className="perfil-grid">
-
           {anuncios.map((item) => (
             <div
               key={item.id}
               className="perfil-anuncio-card"
             >
-
               <img
                 src={item.imagem}
                 alt={item.titulo}
@@ -340,11 +330,9 @@ const Perfil: React.FC = () => {
               </p>
 
               <div className="perfil-acoes">
-
                 {item.status ===
                 'VENDIDO' ? (
                   <>
-
                     <button
                       onClick={() =>
                         reativarAnuncio(
@@ -366,11 +354,9 @@ const Perfil: React.FC = () => {
                     >
                       EXCLUIR
                     </button>
-
                   </>
                 ) : (
                   <>
-
                     <button
                       onClick={() =>
                         editarAnuncio(
@@ -392,15 +378,11 @@ const Perfil: React.FC = () => {
                     >
                       VENDIDO
                     </button>
-
                   </>
                 )}
-
               </div>
-
             </div>
           ))}
-
         </div>
 
         {myAdsQuery.isLoading && (
@@ -435,7 +417,6 @@ const Perfil: React.FC = () => {
               Nenhum anúncio cadastrado.
             </p>
           )}
-
       </div>
     </div>
   );
