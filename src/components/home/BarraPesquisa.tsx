@@ -3,11 +3,28 @@ import { Search } from 'lucide-react';
 
 interface BarraPesquisaProps {
   placeholder?: string;
+  value?: string;
+  onChange?: (value: string) => void;
+  onSubmit?: () => void;
 }
 
 const BarraPesquisa: React.FC<BarraPesquisaProps> = ({
   placeholder = "O que você está procurando no Cedro?",
+  value,
+  onChange,
+  onSubmit,
 }) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange?.(event.target.value);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      onSubmit?.();
+    }
+  };
+
   return (
     <div className="relative w-full max-w-xl group">
 
@@ -38,6 +55,9 @@ const BarraPesquisa: React.FC<BarraPesquisaProps> = ({
           type="text"
           placeholder={placeholder}
           autoComplete="off"
+          value={value ?? ''}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
           className="
             flex-1 h-full pl-4
             

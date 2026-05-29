@@ -43,6 +43,11 @@ const Login: React.FC = () => {
       return;
     }
 
+    if (password.trim().length < 6) {
+      setLocalError('Senha muito curta.');
+      return;
+    }
+
     try {
       await loginMutation.mutateAsync({
         email: email.trim().toLowerCase(),

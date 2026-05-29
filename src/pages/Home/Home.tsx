@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import BotaoFiltroMestre from '../../components/home/BotaoFiltroMestre';
 import ModalFiltros from '../../components/home/ModalFiltros';
@@ -72,6 +73,10 @@ const normalize = (value: string) =>
 const Home: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filtrosAtivos, setFiltrosAtivos] = useState<string[]>([]);
+  const [searchParams] = useSearchParams();
+
+  const searchText = (searchParams.get('q') ?? '').trim();
+  const normalizedSearch = normalize(searchText);
 
   const productsQuery = trpc.product.listPublic.useQuery();
 
@@ -115,6 +120,16 @@ const Home: React.FC = () => {
       : undefined;
 
     return produtos.filter((produto) => {
+      if (normalizedSearch) {
+        const matchSearch =
+          normalize(produto.titulo).includes(normalizedSearch) ||
+          normalize(produto.categoria).includes(normalizedSearch) ||
+          normalize(produto.localizacao).includes(normalizedSearch) ||
+          normalize(produto.condicao).includes(normalizedSearch);
+
+        if (!matchSearch) return false;
+      }
+
       if (categoryFilters.length > 0 && !categoryFilters.includes('Todos')) {
         const produtoCategoria = normalize(produto.categoria);
 
@@ -145,7 +160,7 @@ const Home: React.FC = () => {
 
       return true;
     });
-  }, [filtrosAtivos, produtos]);
+  }, [filtrosAtivos, normalizedSearch, produtos]);
 
   const removeFiltro = (filtro: string): void => {
     if (filtro === 'all') {
