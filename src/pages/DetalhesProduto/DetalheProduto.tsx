@@ -124,7 +124,7 @@ const DetalheProduto: React.FC = () => {
             </div>
 
             <div className="detalhe-acoes-wrapper">
-              <AcoesProduto />
+              <AcoesProduto productId={productId} isFavorited={produto.isFavorited} />
             </div>
 
           </div>

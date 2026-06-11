@@ -197,7 +197,23 @@ export const productRouter = router({
       select: advertisementSelect,
     });
 
-    return ads.map(serializeAdvertisement);
+    let userFavoriteIds: number[] = [];
+    if (ctx.user) {
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.user.id },
+        select: {
+          favorites: {
+            select: { id: true },
+          },
+        },
+      });
+      userFavoriteIds = user?.favorites.map((f) => f.id) ?? [];
+    }
+
+    return ads.map((ad) => ({
+      ...serializeAdvertisement(ad),
+      isFavorited: userFavoriteIds.includes(ad.id),
+    }));
   }),
 
   byId: publicProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ ctx, input }) => {
@@ -215,8 +231,72 @@ export const productRouter = router({
       throw new TRPCError({ code: "NOT_FOUND", message: "Anuncio nao encontrado." });
     }
 
-    return serializeAdvertisement(ad);
+    let isFavorited = false;
+    if (ctx.user) {
+      const favorite = await ctx.prisma.advertisement.findFirst({
+        where: {
+          id: input.id,
+          favoritedBy: {
+            some: {
+              id: ctx.user.id,
+            },
+          },
+        },
+        select: { id: true },
+      });
+      isFavorited = !!favorite;
+    }
+
+    return {
+      ...serializeAdvertisement(ad),
+      isFavorited,
+    };
   }),
+
+  toggleFavorite: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const ad = await ctx.prisma.advertisement.findUnique({
+        where: { id: input.id },
+        select: { id: true },
+      });
+
+      if (!ad) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Anuncio nao encontrado." });
+      }
+
+      const existingFavorite = await ctx.prisma.user.findFirst({
+        where: {
+          id: ctx.user.id,
+          favorites: {
+            some: { id: input.id },
+          },
+        },
+        select: { id: true },
+      });
+
+      if (existingFavorite) {
+        await ctx.prisma.user.update({
+          where: { id: ctx.user.id },
+          data: {
+            favorites: {
+              disconnect: { id: input.id },
+            },
+          },
+        });
+        return { favorited: false };
+      } else {
+        await ctx.prisma.user.update({
+          where: { id: ctx.user.id },
+          data: {
+            favorites: {
+              connect: { id: input.id },
+            },
+          },
+        });
+        return { favorited: true };
+      }
+    }),
 
   myAds: protectedProcedure.query(async ({ ctx }) => {
     const ads = await ctx.prisma.advertisement.findMany({

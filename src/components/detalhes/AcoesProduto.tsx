@@ -1,7 +1,48 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { trpc } from '../../lib/trpc';
+import { isAuthenticated } from '../../lib/session';
 
-const AcoesProduto: React.FC = () => {
+interface AcoesProdutoProps {
+  productId: number;
+  isFavorited?: boolean;
+}
+
+const AcoesProduto: React.FC<AcoesProdutoProps> = ({ productId, isFavorited = false }) => {
+  const navigate = useNavigate();
+  const utils = trpc.useUtils();
+  const [favorited, setFavorited] = useState(isFavorited);
+
+  useEffect(() => {
+    setFavorited(isFavorited);
+  }, [isFavorited]);
+
+  const toggleFavoriteMutation = trpc.product.toggleFavorite.useMutation({
+    onSuccess: (data) => {
+      setFavorited(data.favorited);
+      utils.product.byId.invalidate({ id: productId });
+      utils.product.listPublic.invalidate();
+    },
+    onError: (error) => {
+      // Revert state if mutation fails
+      setFavorited(favorited);
+      alert(error.message || 'Ocorreu um erro ao atualizar favoritos.');
+    },
+  });
+
+  const handleFavoriteClick = () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
+    const nextState = !favorited;
+    setFavorited(nextState);
+
+    toggleFavoriteMutation.mutate({ id: productId });
+  };
+
   return (
     <div className="flex flex-col gap-3 mt-6 w-full">
 
@@ -13,10 +54,22 @@ const AcoesProduto: React.FC = () => {
       </button>
 
       {/* BOTÃO SALVAR */}
-      <button className="w-full flex items-center justify-center gap-3 py-4 bg-white/3 border border-white/10 rounded-2xl hover:bg-white/8 transition-all cursor-pointer group">
-        <Heart size={20} className="text-white group-hover:fill-white transition-all" strokeWidth={2} />
+      <button
+        onClick={handleFavoriteClick}
+        disabled={toggleFavoriteMutation.isPending}
+        className="w-full flex items-center justify-center gap-3 py-4 bg-white/3 border border-white/10 rounded-2xl hover:bg-white/8 transition-all cursor-pointer group disabled:opacity-50"
+      >
+        <Heart
+          size={20}
+          className={`transition-all ${
+            favorited
+              ? 'text-red-500 fill-red-500 group-hover:text-red-400 group-hover:fill-red-400'
+              : 'text-white group-hover:fill-white'
+          }`}
+          strokeWidth={2}
+        />
         <span className="font-bold text-white text-base">
-          Salvar Favorito
+          {favorited ? 'Remover dos Favoritos' : 'Salvar Favorito'}
         </span>
       </button>
 
