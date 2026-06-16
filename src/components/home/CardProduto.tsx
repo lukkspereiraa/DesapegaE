@@ -8,9 +8,10 @@ interface CardProdutoProps {
   preco: number;
   titulo: string;
   localizacao: string;
+  condicao?: string;
 }
 
-const CardProduto: React.FC<CardProdutoProps> = ({ id, imagem, preco, titulo, localizacao }) => {
+const CardProduto: React.FC<CardProdutoProps> = ({ id, imagem, preco, titulo, localizacao, condicao }) => {
   return (
     <Link
       to={`/produto/${id}`}
@@ -23,7 +24,7 @@ const CardProduto: React.FC<CardProdutoProps> = ({ id, imagem, preco, titulo, lo
     >
 
       {/* ÁREA DA IMAGEM */}
-      <div className="w-full aspect-[4/3] overflow-hidden">
+      <div className="w-full aspect-[4/3] overflow-hidden relative">
         <img
           src={imagem}
           alt={titulo}
@@ -34,6 +35,11 @@ const CardProduto: React.FC<CardProdutoProps> = ({ id, imagem, preco, titulo, lo
             img.src = "https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=400";
           }}
         />
+        {condicao && (
+          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border border-white/10">
+            {condicao}
+          </div>
+        )}
       </div>
 
       {/* CONTEÚDO */}

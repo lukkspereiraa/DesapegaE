@@ -235,6 +235,7 @@ const Home: React.FC = () => {
             preco={produto.preco}
             titulo={produto.titulo}
             localizacao={produto.localizacao}
+            condicao={produto.condicao}
           />
         ))}
       </div>

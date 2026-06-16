@@ -91,34 +91,10 @@ async function upsertAdmin(adminEnv: AdminEnv) {
 		throw new Error("Admin role not found during seed");
 	}
 
-	const state = await prisma.state.upsert({
-		where: { code: adminEnv.stateCode },
-		create: {
-			code: adminEnv.stateCode,
-			name: adminEnv.stateName,
-		},
-		update: {
-			name: adminEnv.stateName,
-		},
-	});
-
-	const city = await prisma.city.upsert({
-		where: {
-			name_stateId: {
-				name: adminEnv.cityName,
-				stateId: state.id,
-			},
-		},
-		create: {
-			name: adminEnv.cityName,
-			stateId: state.id,
-		},
-		update: {},
-	});
-
 	const existingAddress = await prisma.address.findFirst({
 		where: {
-			cityId: city.id,
+			stateCode: adminEnv.stateCode,
+			cityName: adminEnv.cityName,
 			neighborhood: adminEnv.neighborhood,
 			postalCode: adminEnv.postalCode,
 			street: adminEnv.street,
@@ -132,7 +108,9 @@ async function upsertAdmin(adminEnv: AdminEnv) {
 		existingAddress ??
 		(await prisma.address.create({
 			data: {
-				cityId: city.id,
+				stateCode: adminEnv.stateCode,
+				stateName: adminEnv.stateName,
+				cityName: adminEnv.cityName,
 				neighborhood: adminEnv.neighborhood,
 				postalCode: adminEnv.postalCode,
 				street: adminEnv.street,

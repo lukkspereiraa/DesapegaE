@@ -31,37 +31,20 @@ model Role {
   updatedAt DateTime @default(now()) @updatedAt
 }
 
-model State {
-  id        Int      @id @default(autoincrement())
-  name      String
-  code      String   @unique
-  cities    City[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-}
 
-model City {
-  id        Int      @id @default(autoincrement())
-  name      String
-  state     State    @relation(fields: [stateId], references: [id])
-  stateId   Int
-  addresses Address[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@unique([name, stateId])
-}
 
 model Address {
-  id           Int      @id @default(autoincrement())
-  city         City     @relation(fields: [cityId], references: [id])
-  cityId       Int
+  id           Int             @id @default(autoincrement())
+  stateCode    String          @default("CE")
+  stateName    String          @default("Ceará")
+  cityName     String          @default("Cedro")
   neighborhood String
-  postalCode   String   @default("00000-000")
+  postalCode   String          @default("00000-000")
   street       String?
   number       String?
   complement   String?
   users        User[]
+  advertisements Advertisement[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now()) @updatedAt
 }
@@ -105,6 +88,8 @@ model Advertisement {
   conditions   String
   category     Category             @relation(fields: [categoryId], references: [id])
   categoryId   Int
+  address      Address?             @relation(fields: [addressId], references: [id])
+  addressId    Int?
   status       AdvertisementStatus  @default(Open)
   reviews      Review[]
   complaints   Complaint[]

@@ -41,6 +41,7 @@ interface Anuncio {
   status: 'ATIVO' | 'VENDIDO';
   titulo: string;
   preco: number;
+  condicao: string;
 }
 
 const Perfil: React.FC = () => {
@@ -110,6 +111,8 @@ const Perfil: React.FC = () => {
         Number.isFinite(ad.price)
           ? ad.price / 100
           : 0,
+
+      condicao: ad.conditions,
     }));
   }, [myAdsQuery.data]);
 
@@ -300,7 +303,7 @@ const Perfil: React.FC = () => {
           {anuncios.map((item) => (
             <div
               key={item.id}
-              className="perfil-anuncio-card"
+              className="perfil-anuncio-card relative"
             >
               <img
                 src={item.imagem}
@@ -318,6 +321,12 @@ const Perfil: React.FC = () => {
               >
                 {item.status}
               </div>
+
+              {item.condicao && (
+                <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border border-white/10">
+                  {item.condicao}
+                </div>
+              )}
 
               <h3 className="perfil-anuncio-titulo">
                 {item.titulo}

@@ -28,36 +28,10 @@ export async function resolveAddressId(prisma: PrismaLike, input: AddressInput):
     complement: input.complement ?? null,
   };
 
-  const state = await prisma.state.upsert({
-    where: { code: normalized.stateCode },
-    create: {
-      code: normalized.stateCode,
-      name: normalized.stateName,
-    },
-    update: {
-      name: normalized.stateName,
-    },
-    select: { id: true },
-  });
-
-  const city = await prisma.city.upsert({
-    where: {
-      name_stateId: {
-        name: normalized.cityName,
-        stateId: state.id,
-      },
-    },
-    create: {
-      name: normalized.cityName,
-      stateId: state.id,
-    },
-    update: {},
-    select: { id: true },
-  });
-
   const existingAddress = await prisma.address.findFirst({
     where: {
-      cityId: city.id,
+      stateCode: normalized.stateCode,
+      cityName: normalized.cityName,
       neighborhood: normalized.neighborhood,
       postalCode: normalized.postalCode,
       street: normalized.street,
@@ -73,7 +47,9 @@ export async function resolveAddressId(prisma: PrismaLike, input: AddressInput):
 
   const createdAddress = await prisma.address.create({
     data: {
-      cityId: city.id,
+      stateCode: normalized.stateCode,
+      stateName: normalized.stateName,
+      cityName: normalized.cityName,
       neighborhood: normalized.neighborhood,
       postalCode: normalized.postalCode,
       street: normalized.street,

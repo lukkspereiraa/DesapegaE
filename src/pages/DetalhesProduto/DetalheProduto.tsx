@@ -12,21 +12,45 @@ import { trpc } from '../../lib/trpc';
 import './DetalheProduto.css';
 
 const formatLocation = (ad: {
+  address?: {
+    street?: string | null;
+    number?: string | null;
+    neighborhood?: string;
+    cityName?: string;
+    stateCode?: string;
+  } | null;
   advertiser?: {
     address?: {
+      street?: string | null;
+      number?: string | null;
       neighborhood?: string;
-      city?: {
-        name?: string;
-      };
-    };
+      cityName?: string;
+      stateCode?: string;
+    } | null;
   };
 }) => {
-  const neighborhood = ad.advertiser?.address?.neighborhood ?? '';
-  const city = ad.advertiser?.address?.city?.name ?? '';
+  const addressSource = ad.address || ad.advertiser?.address;
+  if (!addressSource) return 'Localização não informada';
 
-  const location = [neighborhood, city].filter(Boolean).join(', ');
+  const parts = [];
+  if (addressSource.street) {
+    let streetStr = addressSource.street;
+    if (addressSource.number) {
+      streetStr += `, ${addressSource.number}`;
+    }
+    parts.push(streetStr);
+  }
+  if (addressSource.neighborhood) parts.push(addressSource.neighborhood);
+  
+  if (addressSource.cityName) {
+    let cityStr = addressSource.cityName;
+    if (addressSource.stateCode) {
+      cityStr += ` - ${addressSource.stateCode}`;
+    }
+    parts.push(cityStr);
+  }
 
-  return location || 'Localização não informada';
+  return parts.join(' • ') || 'Localização não informada';
 };
 
 const DetalheProduto: React.FC = () => {
@@ -113,6 +137,8 @@ const DetalheProduto: React.FC = () => {
               preco={precoEmReais}
               localizacao={localizacao}
               descricao={produto.description}
+              categoria={produto.category?.name}
+              condicao={produto.conditions}
             />
 
             <div className="detalhe-vendedor-wrapper">

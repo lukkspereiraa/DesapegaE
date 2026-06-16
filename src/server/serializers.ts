@@ -33,19 +33,9 @@ export const userProfileSelect = {
       street: true,
       number: true,
       complement: true,
-      city: {
-        select: {
-          id: true,
-          name: true,
-          state: {
-            select: {
-              id: true,
-              name: true,
-              code: true,
-            },
-          },
-        },
-      },
+      stateCode: true,
+      stateName: true,
+      cityName: true,
     },
   },
 } satisfies Prisma.UserSelect;
@@ -69,15 +59,9 @@ export function serializeUserProfile(user: UserProfilePayload) {
       street: user.address.street,
       number: user.address.number,
       complement: user.address.complement,
-      city: {
-        id: user.address.city.id,
-        name: user.address.city.name,
-        state: {
-          id: user.address.city.state.id,
-          name: user.address.city.state.name,
-          code: user.address.city.state.code,
-        },
-      },
+      stateCode: user.address.stateCode,
+      stateName: user.address.stateName,
+      cityName: user.address.cityName,
     },
   };
 }

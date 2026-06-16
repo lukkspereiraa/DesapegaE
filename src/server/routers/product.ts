@@ -4,6 +4,7 @@ import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { deleteImageBlobIfUnused } from "../blob";
 import { resolveUserAvatarUrl } from "../serializers";
+import { addressInputSchema, resolveAddressId } from "../address";
 
 const publicListInputSchema = z
   .object({
@@ -26,6 +27,8 @@ const createProductInputSchema = z.object({
   conditions: z.string().trim().min(2).max(60),
   categoryId: z.number().int().positive(),
   pictures: z.array(pictureInputSchema).max(10).optional(),
+  useProfileAddress: z.boolean().optional(),
+  address: addressInputSchema.optional(),
 });
 
 const updateProductInputSchema = z
@@ -38,6 +41,8 @@ const updateProductInputSchema = z
     categoryId: z.number().int().positive().optional(),
     pictures: z.array(pictureInputSchema).max(10).optional(),
     status: z.nativeEnum(AdvertisementStatus).optional(),
+    useProfileAddress: z.boolean().optional(),
+    address: addressInputSchema.optional(),
   })
   .refine(
     (input) =>
@@ -47,7 +52,9 @@ const updateProductInputSchema = z
       input.conditions !== undefined ||
       input.categoryId !== undefined ||
       input.pictures !== undefined ||
-      input.status !== undefined,
+      input.status !== undefined ||
+      input.useProfileAddress !== undefined ||
+      input.address !== undefined,
     {
       message: "Nenhum campo para atualizar.",
     },
@@ -88,6 +95,19 @@ const advertisementSelect = {
       id: "asc",
     },
   },
+  address: {
+    select: {
+      id: true,
+      stateCode: true,
+      stateName: true,
+      cityName: true,
+      neighborhood: true,
+      postalCode: true,
+      street: true,
+      number: true,
+      complement: true,
+    },
+  },
   advertiser: {
     select: {
       id: true,
@@ -98,19 +118,14 @@ const advertisementSelect = {
       instagram: true,
       address: {
         select: {
+          stateCode: true,
+          stateName: true,
+          cityName: true,
           neighborhood: true,
           postalCode: true,
-          city: {
-            select: {
-              name: true,
-              state: {
-                select: {
-                  code: true,
-                  name: true,
-                },
-              },
-            },
-          },
+          street: true,
+          number: true,
+          complement: true,
         },
       },
     },
@@ -320,6 +335,14 @@ export const productRouter = router({
 
     await ensureImageBlobsExist(ctx.prisma, input.pictures);
 
+    let addressId: number;
+    if (input.useProfileAddress || !input.address) {
+      const user = await ctx.prisma.user.findUniqueOrThrow({ where: { id: ctx.user.id } });
+      addressId = user.addressId;
+    } else {
+      addressId = await resolveAddressId(ctx.prisma, input.address);
+    }
+
     const createdAd = await ctx.prisma.advertisement.create({
       data: {
         advertiserId: ctx.user.id,
@@ -328,6 +351,7 @@ export const productRouter = router({
         price: input.price,
         conditions: input.conditions,
         categoryId: input.categoryId,
+        addressId,
         pictures: input.pictures?.length
           ? {
               create: input.pictures.map((picture) => ({
@@ -369,6 +393,14 @@ export const productRouter = router({
     if (input.conditions !== undefined) data.conditions = input.conditions;
     if (input.categoryId !== undefined) data.category = { connect: { id: input.categoryId } };
     if (input.status !== undefined) data.status = input.status;
+
+    if (input.useProfileAddress) {
+      const user = await ctx.prisma.user.findUniqueOrThrow({ where: { id: ctx.user.id } });
+      data.address = { connect: { id: user.addressId } };
+    } else if (input.address) {
+      const addressId = await resolveAddressId(ctx.prisma, input.address);
+      data.address = { connect: { id: addressId } };
+    }
 
     if (input.pictures !== undefined) {
       const previousPictures = await ctx.prisma.advertisementPicture.findMany({
