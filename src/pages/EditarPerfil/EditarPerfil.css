@@ -50,11 +50,11 @@
   z-index: 10;
 
   width: 100%;
-  max-width: 500px;
+  max-width: 950px;
 
   border-radius: 30px;
 
-  padding: 30px 30px 26px;
+  padding: 36px;
 
   background: rgba(18, 15, 43, 0.92);
 
@@ -203,12 +203,12 @@
 }
 
 .editar-perfil-form {
-  display: flex;
-  flex-direction: column;
+  display: grid;
 
-  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 18px 22px;
 }
-
 .editar-perfil-field label {
   display: block;
 
@@ -322,4 +322,23 @@
   letter-spacing: 1px;
 
   cursor: pointer;
+}
+
+.editar-perfil-field.full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .editar-perfil-card {
+    max-width: 100%;
+    padding: 24px;
+  }
+
+  .editar-perfil-form {
+    grid-template-columns: 1fr;
+  }
+
+  .editar-perfil-field.full {
+    grid-column: auto;
+  }
 }

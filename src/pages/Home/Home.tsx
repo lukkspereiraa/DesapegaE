@@ -73,6 +73,7 @@ const normalize = (value: string) =>
 const Home: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filtrosAtivos, setFiltrosAtivos] = useState<string[]>([]);
+  const [ordenacao, setOrdenacao] = useState('mais-recente');
   const [searchParams] = useSearchParams();
 
   const searchText = (searchParams.get('q') ?? '').trim();
@@ -119,50 +120,91 @@ const Home: React.FC = () => {
       ? Number(maxFilter.replace('Max: R$', '').replace(',', '.'))
       : undefined;
 
-    return produtos.filter((produto) => {
-      if (normalizedSearch) {
-        const matchSearch =
-          normalize(produto.titulo).includes(normalizedSearch) ||
-          normalize(produto.categoria).includes(normalizedSearch) ||
-          normalize(produto.localizacao).includes(normalizedSearch) ||
-          normalize(produto.condicao).includes(normalizedSearch);
+    const resultado = produtos.filter((produto) => {
+  if (normalizedSearch) {
+    const matchSearch =
+      normalize(produto.titulo).includes(normalizedSearch) ||
+      normalize(produto.categoria).includes(normalizedSearch) ||
+      normalize(produto.localizacao).includes(normalizedSearch) ||
+      normalize(produto.condicao).includes(normalizedSearch);
 
-        if (!matchSearch) return false;
-      }
+    if (!matchSearch) return false;
+  }
 
-      if (categoryFilters.length > 0 && !categoryFilters.includes('Todos')) {
-        const produtoCategoria = normalize(produto.categoria);
+  if (categoryFilters.length > 0 && !categoryFilters.includes('Todos')) {
+    const produtoCategoria = normalize(produto.categoria);
 
-        const matchCategoria = categoryFilters.some(
-          (category) => normalize(category) === produtoCategoria
-        );
+    const matchCategoria = categoryFilters.some(
+      (category) => normalize(category) === produtoCategoria
+    );
 
-        if (!matchCategoria) return false;
-      }
+    if (!matchCategoria) return false;
+  }
 
-      if (conditionFilters.length > 0) {
-        const produtoCondicao = normalize(produto.condicao);
+  if (conditionFilters.length > 0) {
+    const produtoCondicao = normalize(produto.condicao);
 
-        const matchCondicao = conditionFilters.some(
-          (condition) => normalize(condition) === produtoCondicao
-        );
+    const matchCondicao = conditionFilters.some(
+      (condition) => normalize(condition) === produtoCondicao
+    );
 
-        if (!matchCondicao) return false;
-      }
+    if (!matchCondicao) return false;
+  }
 
-      if (Number.isFinite(minValue) && produto.preco < (minValue as number)) {
-        return false;
-      }
+  if (Number.isFinite(minValue) && produto.preco < (minValue as number)) {
+    return false;
+  }
 
-      if (Number.isFinite(maxValue) && produto.preco > (maxValue as number)) {
-        return false;
-      }
+  if (Number.isFinite(maxValue) && produto.preco > (maxValue as number)) {
+    return false;
+  }
 
-      return true;
-    });
-  }, [filtrosAtivos, normalizedSearch, produtos]);
+  return true;
+});
 
-  const removeFiltro = (filtro: string): void => {
+switch (ordenacao) {
+  case 'mais-recente':
+    resultado.sort((a, b) => b.id - a.id);
+    break;
+
+  case 'relevancia':
+    resultado.sort((a, b) => b.id - a.id);
+    break;
+
+  case 'alfabetica-crescente':
+    resultado.sort((a, b) =>
+      a.titulo.localeCompare(b.titulo)
+    );
+    break;
+
+  case 'alfabetica-decrescente':
+    resultado.sort((a, b) =>
+      b.titulo.localeCompare(a.titulo)
+    );
+    break;
+
+  case 'preco-crescente':
+    resultado.sort((a, b) =>
+      a.preco - b.preco
+    );
+    break;
+
+  case 'preco-decrescente':
+    resultado.sort((a, b) =>
+      b.preco - a.preco
+    );
+    break;
+}
+
+return resultado;
+}, [
+  filtrosAtivos,
+  normalizedSearch,
+  produtos,
+  ordenacao
+]);
+
+const removeFiltro = (filtro: string): void => {
     if (filtro === 'all') {
       setFiltrosAtivos([]);
       return;
@@ -182,6 +224,8 @@ const Home: React.FC = () => {
             onClose={() => setIsModalOpen(false)}
             filtrosAtivos={filtrosAtivos}
             setFiltrosAtivos={setFiltrosAtivos}
+            ordenacao={ordenacao}
+            setOrdenacao={setOrdenacao}
           />
         </div>
 

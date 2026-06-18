@@ -73,6 +73,8 @@ interface ModalFiltrosProps {
   onClose: () => void;
   filtrosAtivos: string[];
   setFiltrosAtivos: React.Dispatch<React.SetStateAction<string[]>>;
+  ordenacao: string;
+  setOrdenacao: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const ModalFiltros: React.FC<ModalFiltrosProps> = ({
@@ -80,6 +82,8 @@ const ModalFiltros: React.FC<ModalFiltrosProps> = ({
   onClose,
   filtrosAtivos,
   setFiltrosAtivos,
+  ordenacao,
+  setOrdenacao,
 }) => {
   if (!isOpen) return null;
 
@@ -154,6 +158,40 @@ const ModalFiltros: React.FC<ModalFiltrosProps> = ({
           filtrosAtivos={filtrosAtivos}
           onToggle={toggleFiltro}
         />
+        
+        <div className="mb-6">
+  <div className="flex items-center gap-2 mb-4">
+    <LayoutGrid size={18} className="text-white/80" />
+
+    <span className="text-[12px] font-black uppercase tracking-widest text-white/90">
+      Ordenar por
+    </span>
+  </div>
+
+  <select
+    value={ordenacao}
+    onChange={(e) => setOrdenacao(e.target.value)}
+    className="
+    w-full
+    bg-[#0A0A18]
+    border
+    border-white/10
+    rounded-xl
+    p-3
+    text-white
+    outline-none
+    focus:border-electric-blue
+    cursor-pointer
+    "
+  >
+    <option value="mais-recente">Mais recente</option>
+    <option value="relevancia">Relevância</option>
+    <option value="alfabetica-crescente">A → Z</option>
+    <option value="alfabetica-decrescente">Z → A</option>
+    <option value="preco-crescente">Menor preço</option>
+    <option value="preco-decrescente">Maior preço</option>
+  </select>
+</div>
 
         <button
           onClick={onClose}

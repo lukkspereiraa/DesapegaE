@@ -255,14 +255,6 @@ const Perfil: React.FC = () => {
           </div>
 
           <div className="perfil-header-actions">
-            <button
-              onClick={() =>
-                navigate('/dados-privados')
-              }
-              className="perfil-dados-btn"
-            >
-              Meus Dados
-            </button>
 
             <button
               onClick={() =>

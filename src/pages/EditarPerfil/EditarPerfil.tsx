@@ -20,6 +20,20 @@ const EditarPerfil: React.FC = () => {
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+
+  const [cep, setCep] = useState('');
+  const [estado, setEstado] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [rua, setRua] = useState('');
+  const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
 
   const [avatarPreviewUrl, setAvatarPreviewUrl] =
     useState<string | null>(null);
@@ -88,6 +102,49 @@ const EditarPerfil: React.FC = () => {
     setSelectedAvatarFile(null);
 
     setShouldRemoveAvatar(false);
+
+    setCpf(
+  (profileQuery.data as any)?.cpf ?? ''
+);
+
+setBirthDate(
+  (profileQuery.data as any)?.birthDate ?? ''
+);
+
+setCep(
+  profileQuery.data?.address?.postalCode ??
+    ''
+);
+
+setEstado(
+  profileQuery.data?.address?.stateCode ??
+    ''
+);
+
+setCidade(
+  profileQuery.data?.address?.cityName ??
+    ''
+);
+
+setBairro(
+  profileQuery.data?.address?.neighborhood ??
+    ''
+);
+
+setRua(
+  profileQuery.data?.address?.street ??
+    ''
+);
+
+setNumero(
+  profileQuery.data?.address?.number ??
+    ''
+);
+
+setComplemento(
+  profileQuery.data?.address?.complement ??
+    ''
+);
   }, [profileQuery.data]);
 
   useEffect(() => {
@@ -287,7 +344,7 @@ const EditarPerfil: React.FC = () => {
 
         <div className="editar-perfil-form">
 
-          <div className="editar-perfil-field">
+          <div className="editar-perfil-field full">
 
             <label>
               Nome completo
@@ -305,7 +362,7 @@ const EditarPerfil: React.FC = () => {
 
           </div>
 
-          <div className="editar-perfil-field">
+          <div className="editar-perfil-field full">
 
             <label>E-mail</label>
 
@@ -340,20 +397,112 @@ const EditarPerfil: React.FC = () => {
           </div>
 
           <div className="editar-perfil-field">
+  <label>CPF</label>
 
-            <label>Instagram</label>
+  <input
+    type="text"
+    value={cpf}
+    onChange={(e) =>
+      setCpf(e.target.value)
+    }
+  />
+</div>
 
-            <input
-              type="text"
-              value={instagram}
-              onChange={(event) =>
-                setInstagram(
-                  event.target.value
-                )
-              }
-            />
+<div className="editar-perfil-field">
+  <label>Data de nascimento</label>
 
-          </div>
+  <input
+    type="date"
+    value={birthDate}
+    onChange={(e) =>
+      setBirthDate(e.target.value)
+    }
+  />
+</div>
+
+<div className="editar-perfil-field">
+  <label>CEP</label>
+
+  <input
+    type="text"
+    value={cep}
+    onChange={(e) =>
+      setCep(e.target.value)
+    }
+  />
+</div>
+
+<div className="editar-perfil-field">
+  <label>Estado</label>
+
+  <input
+    type="text"
+    value={estado}
+    onChange={(e) =>
+      setEstado(e.target.value)
+    }
+  />
+</div>
+
+<div className="editar-perfil-field">
+  <label>Cidade</label>
+
+  <input
+    type="text"
+    value={cidade}
+    onChange={(e) =>
+      setCidade(e.target.value)
+    }
+  />
+</div>
+
+<div className="editar-perfil-field">
+  <label>Bairro</label>
+
+  <input
+    type="text"
+    value={bairro}
+    onChange={(e) =>
+      setBairro(e.target.value)
+    }
+  />
+</div>
+
+<div className="editar-perfil-field">
+  <label>Rua</label>
+
+  <input
+    type="text"
+    value={rua}
+    onChange={(e) =>
+      setRua(e.target.value)
+    }
+  />
+</div>
+
+<div className="editar-perfil-field">
+  <label>Número</label>
+
+  <input
+    type="text"
+    value={numero}
+    onChange={(e) =>
+      setNumero(e.target.value)
+    }
+  />
+</div>
+
+<div className="editar-perfil-field full">
+  <label>Complemento</label>
+
+  <input
+    type="text"
+    value={complemento}
+    onChange={(e) =>
+      setComplemento(e.target.value)
+    }
+  />
+</div>
 
         </div>
 
