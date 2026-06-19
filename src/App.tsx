@@ -1,21 +1,42 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router-dom';
+
 import MainLayout from './layouts/MainLayout';
-import Home from "./pages/Home/Home";
+
+import Home from './pages/Home/Home';
 import DetalheProduto from './pages/DetalhesProduto/DetalheProduto';
 import Cadastro from './pages/Cadastro/Cadastro';
 import Login from './pages/Login/Login';
+import EsqueceuSenha from './pages/EsqueceuSenha/EsqueceuSenha';
+
 import Anunciar from './pages/Anunciar/Anunciar';
 import Perfil from './pages/Perfil/Perfil';
-import EditarPerfil from './pages/EditarPerfil/EditarPerfil';;
-import { isAuthenticated } from './lib/session';
+import EditarPerfil from './pages/EditarPerfil/EditarPerfil';
 import EditarProduto from './pages/EditarProduto/EditarProduto';
 import DadosPrivados from './pages/DadosPrivados/DadosPrivados';
 
-function RequireAuth({ children }: { children: React.ReactElement }) {
+import { isAuthenticated } from './lib/session';
+
+function RequireAuth({
+  children,
+}: {
+  children: React.ReactElement;
+}) {
   const location = useLocation();
 
   if (!isAuthenticated()) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location.pathname }}
+        replace
+      />
+    );
   }
 
   return children;
@@ -25,6 +46,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* HOME */}
         <Route
           path="/"
           element={
@@ -34,9 +56,29 @@ function App() {
           }
         />
 
-        <Route path="/produto/:id" element={<DetalheProduto />} />
-        <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/login" element={<Login />} />
+        {/* PRODUTO */}
+        <Route
+          path="/produto/:id"
+          element={<DetalheProduto />}
+        />
+
+        {/* AUTENTICAÇÃO */}
+        <Route
+          path="/cadastro"
+          element={<Cadastro />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/esqueceu-senha"
+          element={<EsqueceuSenha />}
+        />
+
+        {/* ROTAS PROTEGIDAS */}
         <Route
           path="/anunciar"
           element={
@@ -45,6 +87,7 @@ function App() {
             </RequireAuth>
           }
         />
+
         <Route
           path="/perfil"
           element={
@@ -53,6 +96,7 @@ function App() {
             </RequireAuth>
           }
         />
+
         <Route
           path="/editar-perfil"
           element={

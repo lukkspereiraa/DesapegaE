@@ -132,7 +132,11 @@ const Login: React.FC = () => {
 
           <p className="login-forgot">
             Esqueceu a senha?{' '}
-            <span>Clique Aqui</span>
+            <span
+              onClick={() => navigate('/esqueceu-senha')}
+            >
+              Clique Aqui
+            </span>
           </p>
 
           <p className="login-register-text">
