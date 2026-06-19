@@ -31,71 +31,69 @@ model Role {
   updatedAt DateTime @default(now()) @updatedAt
 }
 
-
-
 model Address {
-  id           Int             @id @default(autoincrement())
-  stateCode    String          @default("CE")
-  stateName    String          @default("Ceará")
-  cityName     String          @default("Cedro")
-  neighborhood String
-  postalCode   String          @default("00000-000")
-  street       String?
-  number       String?
-  complement   String?
-  users        User[]
+  id             Int             @id @default(autoincrement())
+  stateCode      String          @default("CE")
+  stateName      String          @default("Ceará")
+  cityName       String          @default("Cedro")
+  neighborhood   String
+  postalCode     String          @default("00000-000")
+  street         String?
+  number         String?
+  complement     String?
+  users          User[]
   advertisements Advertisement[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now()) @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
 }
 
 model User {
-  id               Int             @id @default(autoincrement())
-  name             String
-  email            String          @unique
-  password         String
-  phone            String
-  instagram        String?
-  avatarUrl        String?
-  avatarBlobId     Int?
-  avatarBlob       ImageBlob?      @relation("UserAvatarBlob", fields: [avatarBlobId], references: [id], onDelete: SetNull)
-  address          Address         @relation(fields: [addressId], references: [id])
-  addressId        Int
-  status           UserStatus      @default(Active)
-  role             Role?           @relation(fields: [roleId], references: [id])
-  roleId           Int?
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String          @unique
+  password       String
+  phone          String
+  instagram      String?
+  avatarUrl      String?
+  avatarBlobId   Int?
+  avatarBlob     ImageBlob?      @relation("UserAvatarBlob", fields: [avatarBlobId], references: [id], onDelete: SetNull)
+  address        Address         @relation(fields: [addressId], references: [id])
+  addressId      Int
+  status         UserStatus      @default(Active)
+  role           Role?           @relation(fields: [roleId], references: [id])
+  roleId         Int?
   advertisements Advertisement[] @relation("AdvertisementToUser")
-  reviews          Review[]
-  complaints       Complaint[]
-  favorites        Advertisement[] @relation(name: "FavoriteToUser")
-  notifications    Notification[]
-  refreshTokens    RefreshToken[]
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  reviews        Review[]
+  complaints     Complaint[]
+  favorites      Advertisement[] @relation(name: "FavoriteToUser")
+  notifications  Notification[]
+  refreshTokens  RefreshToken[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([roleId])
   @@index([avatarBlobId])
 }
 
 model Advertisement {
-  id           Int                  @id @default(autoincrement())
-  advertiser   User                 @relation(name: "AdvertisementToUser", fields: [advertiserId], references: [id])
+  id           Int                    @id @default(autoincrement())
+  advertiser   User                   @relation(name: "AdvertisementToUser", fields: [advertiserId], references: [id])
   advertiserId Int
   pictures     AdvertisementPicture[]
   title        String
   description  String
   price        Int // In cents
   conditions   String
-  category     Category             @relation(fields: [categoryId], references: [id])
+  category     Category               @relation(fields: [categoryId], references: [id])
   categoryId   Int
-  address      Address?             @relation(fields: [addressId], references: [id])
+  address      Address?               @relation(fields: [addressId], references: [id])
   addressId    Int?
-  status       AdvertisementStatus  @default(Open)
+  status       AdvertisementStatus    @default(Open)
   reviews      Review[]
   complaints   Complaint[]
-  favoritedBy  User[]               @relation(name: "FavoriteToUser")
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
+  favoritedBy  User[]                 @relation(name: "FavoriteToUser")
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
 
   @@index([advertiserId])
   @@index([categoryId])
@@ -159,28 +157,28 @@ model Complaint {
 }
 
 model Notification {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   title     String
   body      String
-  read      Boolean  @default(false)
-  sentAt    DateTime @default(now())
+  read      Boolean   @default(false)
+  sentAt    DateTime  @default(now())
   readAt    DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
 }
 
 model RefreshToken {
-  id        Int      @id @default(autoincrement())
-  jti       String   @unique
+  id        Int       @id @default(autoincrement())
+  jti       String    @unique
   tokenHash String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
 
   @@index([userId])
   @@index([expiresAt])

@@ -8,6 +8,7 @@ import {
   getAuthSession,
   saveAuthSession,
 } from '../../lib/session';
+import { fetchAddressFromCEP, fetchStates, fetchCities, StateResponse, CityResponse } from '../../lib/address';
 
 import './EditarPerfil.css';
 
@@ -20,20 +21,36 @@ const EditarPerfil: React.FC = () => {
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [instagram, setInstagram] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-
-  const [senhaAtual, setSenhaAtual] = useState('');
-  const [novaSenha, setNovaSenha] = useState('');
-  const [confirmarSenha, setConfirmarSenha] = useState('');
-
   const [cep, setCep] = useState('');
   const [estado, setEstado] = useState('');
+  const [stateName, setStateName] = useState('');
   const [cidade, setCidade] = useState('');
   const [bairro, setBairro] = useState('');
   const [rua, setRua] = useState('');
   const [numero, setNumero] = useState('');
   const [complemento, setComplemento] = useState('');
+
+  const [fetchingCep, setFetchingCep] = useState(false);
+  const [availableStates, setAvailableStates] = useState<StateResponse[]>([]);
+  const [availableCities, setAvailableCities] = useState<CityResponse[]>([]);
+
+  React.useEffect(() => {
+    fetchStates().then(data => {
+      const sorted = data.sort((a, b) => a.sigla.localeCompare(b.sigla));
+      setAvailableStates(sorted);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    if (estado) {
+      fetchCities(estado).then(data => {
+        const sorted = data.sort((a, b) => a.nome.localeCompare(b.nome));
+        setAvailableCities(sorted);
+      });
+    } else {
+      setAvailableCities([]);
+    }
+  }, [estado]);
 
   const [avatarPreviewUrl, setAvatarPreviewUrl] =
     useState<string | null>(null);
@@ -103,23 +120,20 @@ const EditarPerfil: React.FC = () => {
 
     setShouldRemoveAvatar(false);
 
-    setCpf(
-  (profileQuery.data as any)?.cpf ?? ''
-);
+    setEstado(
+      profileQuery.data?.address?.stateCode ??
+        ''
+    );
 
-setBirthDate(
-  (profileQuery.data as any)?.birthDate ?? ''
-);
+    setStateName(
+      profileQuery.data?.address?.stateName ??
+        ''
+    );
 
-setCep(
-  profileQuery.data?.address?.postalCode ??
-    ''
-);
-
-setEstado(
-  profileQuery.data?.address?.stateCode ??
-    ''
-);
+    setCep(
+      profileQuery.data?.address?.postalCode ??
+        ''
+    );
 
 setCidade(
   profileQuery.data?.address?.cityName ??
@@ -146,6 +160,35 @@ setComplemento(
     ''
 );
   }, [profileQuery.data]);
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newCep = e.target.value.replace(/\D/g, '');
+    if (newCep.length > 8) newCep = newCep.substring(0, 8);
+    
+    let formattedCep = newCep;
+    if (newCep.length > 5) {
+      formattedCep = `${newCep.substring(0, 5)}-${newCep.substring(5)}`;
+    }
+    setCep(formattedCep);
+
+    if (newCep.length === 8) {
+      setFetchingCep(true);
+      try {
+        const data = await fetchAddressFromCEP(newCep);
+        if (data) {
+          setEstado(data.state);
+          setStateName(data.state);
+          setCidade(data.city);
+          setBairro(data.neighborhood);
+          setRua(data.street);
+        }
+      } catch {
+        // ignore
+      } finally {
+        setFetchingCep(false);
+      }
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -240,6 +283,17 @@ setComplemento(
           instagram.trim() || null,
 
         avatarBlobId,
+
+        address: {
+          stateCode: estado.trim(),
+          stateName: stateName.trim() || estado.trim(),
+          cityName: cidade.trim(),
+          neighborhood: bairro.trim(),
+          postalCode: cep.trim(),
+          street: rua.trim() || undefined,
+          number: numero.trim() || undefined,
+          complement: complemento.trim() || undefined,
+        },
       });
     } catch {
       //
@@ -396,29 +450,7 @@ setComplemento(
 
           </div>
 
-          <div className="editar-perfil-field">
-  <label>CPF</label>
 
-  <input
-    type="text"
-    value={cpf}
-    onChange={(e) =>
-      setCpf(e.target.value)
-    }
-  />
-</div>
-
-<div className="editar-perfil-field">
-  <label>Data de nascimento</label>
-
-  <input
-    type="date"
-    value={birthDate}
-    onChange={(e) =>
-      setBirthDate(e.target.value)
-    }
-  />
-</div>
 
 <div className="editar-perfil-field">
   <label>CEP</label>
@@ -426,34 +458,43 @@ setComplemento(
   <input
     type="text"
     value={cep}
-    onChange={(e) =>
-      setCep(e.target.value)
-    }
+    onChange={handleCepChange}
   />
 </div>
 
 <div className="editar-perfil-field">
   <label>Estado</label>
 
-  <input
-    type="text"
+  <select
     value={estado}
-    onChange={(e) =>
-      setEstado(e.target.value)
-    }
-  />
+    onChange={(e) => {
+      const newCode = e.target.value;
+      setEstado(newCode);
+      const st = availableStates.find(s => s.sigla === newCode);
+      if (st) setStateName(st.nome);
+      setCidade('');
+    }}
+  >
+    <option value="">Selecione</option>
+    {availableStates.map(state => (
+      <option key={state.id} value={state.sigla}>{state.sigla}</option>
+    ))}
+  </select>
 </div>
 
 <div className="editar-perfil-field">
   <label>Cidade</label>
 
-  <input
-    type="text"
+  <select
     value={cidade}
-    onChange={(e) =>
-      setCidade(e.target.value)
-    }
-  />
+    onChange={(e) => setCidade(e.target.value)}
+    disabled={!estado || availableCities.length === 0}
+  >
+    <option value="">Selecione</option>
+    {availableCities.map(city => (
+      <option key={city.codigo_ibge} value={city.nome}>{city.nome}</option>
+    ))}
+  </select>
 </div>
 
 <div className="editar-perfil-field">
