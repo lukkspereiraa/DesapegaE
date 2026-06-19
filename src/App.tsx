@@ -19,6 +19,7 @@ import Perfil from './pages/Perfil/Perfil';
 import EditarPerfil from './pages/EditarPerfil/EditarPerfil';
 import EditarProduto from './pages/EditarProduto/EditarProduto';
 import DadosPrivados from './pages/DadosPrivados/DadosPrivados';
+import Vendedor from './pages/Vendedor/Vendedor';
 
 import { isAuthenticated } from './lib/session';
 
@@ -60,6 +61,16 @@ function App() {
         <Route
           path="/produto/:id"
           element={<DetalheProduto />}
+        />
+
+        {/* VENDEDOR - Agora envolvido no MainLayout para ter a Barra de Pesquisa! */}
+        <Route
+          path="/vendedor/:id"
+          element={
+            <MainLayout>
+              <Vendedor />
+            </MainLayout>
+          }
         />
 
         {/* AUTENTICAÇÃO */}

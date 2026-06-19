@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // 1. Importar o useNavigate
 
 interface CardVendedorProps {
+  vendedorId?: number; // 2. Adicionado o ID para saber qual perfil abrir
   nome?: string;
   vendas?: string;
   avatarUrl?: string | null;
 }
 
 const CardVendedor: React.FC<CardVendedorProps> = ({
+  vendedorId,
   nome = "Lucas Pereira",
   vendas = "12",
   avatarUrl,
 }) => {
   const [avatarBroken, setAvatarBroken] = useState(false);
+  const navigate = useNavigate(); // 3. Inicializar o navigate
 
   useEffect(() => {
     setAvatarBroken(false);
@@ -25,8 +29,19 @@ const CardVendedor: React.FC<CardVendedorProps> = ({
     .map((chunk) => chunk[0]?.toUpperCase() ?? '')
     .join('') || 'U';
 
+  // 4. Função que será chamada ao clicar no card
+  const handleIrParaPerfil = () => {
+    // Como você ainda vai criar a tela, defini uma rota padrão: /vendedor/123
+    const idParaNavegar = vendedorId || 'demo'; 
+    navigate(`/vendedor/${idParaNavegar}`);
+  };
+
   return (
-    <div className="flex items-center gap-5 py-6 mt-4 border-t border-white/5">
+    <div 
+      onClick={handleIrParaPerfil} // 5. Adicionado o evento de clique
+      // 6. Adicionado 'cursor-pointer', 'hover:bg-white/5' e 'transition-all' para dar feedback visual de que é clicável
+      className="flex items-center gap-5 py-6 mt-4 border-t border-white/5 cursor-pointer hover:bg-white/5 p-2 -ml-2 rounded-xl transition-all"
+    >
       {/* FOTO COM GLOW ROXO SUTIL */}
       <div className="relative shrink-0">
         <div className="w-16 h-16 rounded-full p-0.5 bg-linear-to-tr from-liquid-purple to-electric-blue shadow-[0_0_15px_rgba(151,71,255,0.3)]">
