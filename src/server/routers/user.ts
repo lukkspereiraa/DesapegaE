@@ -3,8 +3,8 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { addressInputSchema, resolveAddressId } from "../address";
 import { deleteImageBlobIfUnused } from "../blob";
-import { serializeUserProfile, userProfileSelect } from "../serializers";
-import { protectedProcedure, router } from "../trpc";
+import { serializeUserProfile, userProfileSelect, resolveUserAvatarUrl } from "../serializers";
+import { publicProcedure, protectedProcedure, router } from "../trpc";
 
 const updateProfileInputSchema = z.object({
   name: z.string().trim().min(2).max(120).optional(),
@@ -15,7 +15,200 @@ const updateProfileInputSchema = z.object({
   address: addressInputSchema.optional(),
 });
 
+const getVendedorInputSchema = z.object({
+  id: z.number().int().positive(),
+});
+
+const evaluateSellerInputSchema = z.object({
+  sellerId: z.number().int().positive(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().trim().min(3).max(1000),
+});
+
 export const userRouter = router({
+  getVendedor: publicProcedure
+    .input(getVendedorInputSchema)
+    .query(async ({ ctx, input }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: input.id },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          avatarUrl: true,
+          avatarBlobId: true,
+          status: true,
+          createdAt: true,
+          role: { select: { name: true } },
+          address: {
+            select: {
+              cityName: true,
+              neighborhood: true,
+            },
+          },
+          advertisements: {
+            where: { status: "Open" },
+            select: {
+              id: true,
+              title: true,
+              price: true,
+              address: {
+                select: {
+                  cityName: true,
+                  neighborhood: true,
+                }
+              },
+              pictures: {
+                take: 1,
+                select: {
+                  url: true,
+                  blobId: true,
+                },
+                orderBy: {
+                  id: "asc"
+                }
+              },
+            },
+          },
+          reviews: {
+            select: {
+              id: true,
+              rating: true,
+              comment: true,
+              createdAt: true,
+              user: {
+                select: {
+                  name: true,
+                  avatarUrl: true,
+                  avatarBlobId: true,
+                }
+              },
+              advertisement: {
+                select: {
+                  title: true,
+                }
+              }
+            },
+            orderBy: { createdAt: 'desc' }
+          },
+          sellerReviewsReceived: {
+            select: {
+              id: true,
+              rating: true,
+              comment: true,
+              createdAt: true,
+              reviewerId: true,
+              reviewer: {
+                select: {
+                  name: true,
+                  avatarUrl: true,
+                  avatarBlobId: true,
+                }
+              }
+            },
+            orderBy: { createdAt: 'desc' }
+          }
+        }
+      });
+
+      if (!user || user.status !== UserStatus.Active) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Vendedor não encontrado." });
+      }
+
+      const salesCount = await ctx.prisma.advertisement.count({
+        where: {
+          advertiserId: input.id,
+          status: "Closed"
+        }
+      });
+
+      const isOwnProfile = ctx.user?.id === input.id;
+      const hasReviewed = ctx.user ? user.sellerReviewsReceived.some(r => r.reviewerId === ctx.user?.id) : false;
+
+      const { advertisements, reviews, sellerReviewsReceived, ...userData } = user;
+
+      const formattedAdReviews = reviews.map(r => ({
+        id: `ad-${r.id}`,
+        rating: r.rating,
+        comment: r.comment,
+        createdAt: r.createdAt,
+        user: {
+          name: r.user.name,
+          avatarUrl: resolveUserAvatarUrl(r.user.avatarBlobId, r.user.avatarUrl)
+        },
+        advertisement: {
+          title: r.advertisement.title
+        }
+      }));
+
+      const formattedSellerReviews = sellerReviewsReceived.map(r => ({
+        id: `seller-${r.id}`,
+        rating: r.rating,
+        comment: r.comment,
+        createdAt: r.createdAt,
+        user: {
+          name: r.reviewer.name,
+          avatarUrl: resolveUserAvatarUrl(r.reviewer.avatarBlobId, r.reviewer.avatarUrl)
+        },
+        advertisement: {
+          title: "Avaliação direta ao vendedor"
+        }
+      }));
+
+      const allReviews = [...formattedAdReviews, ...formattedSellerReviews].sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+      );
+
+      return {
+        ...serializeUserProfile(userData as any), // reuse serialization for avatarUrl
+        phone: userData.phone,
+        createdAt: userData.createdAt,
+        salesCount,
+        advertisements,
+        reviews: allReviews,
+        isOwnProfile,
+        hasReviewed
+      };
+    }),
+
+  evaluateSeller: protectedProcedure
+    .input(evaluateSellerInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.id === input.sellerId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Você não pode avaliar a si mesmo." });
+      }
+
+      const seller = await ctx.prisma.user.findUnique({
+        where: { id: input.sellerId },
+      });
+
+      if (!seller || seller.status !== UserStatus.Active) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Vendedor não encontrado ou inativo." });
+      }
+
+      const existingReview = await ctx.prisma.sellerReview.findFirst({
+        where: {
+          sellerId: input.sellerId,
+          reviewerId: ctx.user.id,
+        },
+      });
+
+      if (existingReview) {
+        throw new TRPCError({ code: "CONFLICT", message: "Você já avaliou este vendedor." });
+      }
+
+      const review = await ctx.prisma.sellerReview.create({
+        data: {
+          sellerId: input.sellerId,
+          reviewerId: ctx.user.id,
+          rating: input.rating,
+          comment: input.comment,
+        },
+      });
+
+      return review;
+    }),
+
   profile: protectedProcedure.query(async ({ ctx }) => {
     const user = await ctx.prisma.user.findUnique({
       where: { id: ctx.user.id },

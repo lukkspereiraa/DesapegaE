@@ -1,16 +1,35 @@
 import React, { useState } from 'react';
 import { X, Star } from 'lucide-react';
 
+import { trpc } from '../../lib/trpc';
+
 interface ModalAvaliacaoProps {
   isOpen: boolean;
   onClose: () => void;
+  vendedorId: number;
   vendedorNome: string;
 }
 
-const ModalAvaliacao: React.FC<ModalAvaliacaoProps> = ({ isOpen, onClose, vendedorNome }) => {
+const ModalAvaliacao: React.FC<ModalAvaliacaoProps> = ({ isOpen, onClose, vendedorId, vendedorNome }) => {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comentario, setComentario] = useState("");
+  const [error, setError] = useState("");
+  
+  const utils = trpc.useUtils();
+  const { mutateAsync: evaluateSeller, isPending } = trpc.user.evaluateSeller.useMutation({
+    onSuccess: () => {
+      utils.user.getVendedor.invalidate({ id: vendedorId });
+      alert("Avaliação enviada com sucesso!");
+      setRating(0);
+      setComentario("");
+      setError("");
+      onClose();
+    },
+    onError: (err) => {
+      setError(err.message || "Ocorreu um erro ao enviar a avaliação.");
+    }
+  });
 
   if (!isOpen) return null;
 
@@ -21,11 +40,19 @@ const ModalAvaliacao: React.FC<ModalAvaliacaoProps> = ({ isOpen, onClose, vended
     .toUpperCase()
     .slice(0, 2);
 
-  const handleSalvar = () => {
-    console.log({ rating, comentario });
-    // Aqui no futuro chamaremos a mutação do tRPC
-    alert("Avaliação enviada com sucesso!");
-    onClose();
+  const handleSalvar = async () => {
+    if (rating === 0) return;
+    setError("");
+    
+    try {
+      await evaluateSeller({
+        sellerId: vendedorId,
+        rating,
+        comment: comentario || "Sem comentários."
+      });
+    } catch (e) {
+      // erro tratado no onError do mutation
+    }
   };
 
   return (
@@ -81,7 +108,7 @@ const ModalAvaliacao: React.FC<ModalAvaliacaoProps> = ({ isOpen, onClose, vended
           </div>
 
           {/* Área de Texto */}
-          <div className="w-full mb-8">
+          <div className="w-full mb-4">
             <textarea
               value={comentario}
               onChange={(e) => setComentario(e.target.value)}
@@ -90,20 +117,25 @@ const ModalAvaliacao: React.FC<ModalAvaliacaoProps> = ({ isOpen, onClose, vended
             />
           </div>
 
+          {error && (
+            <p className="text-red-400 text-sm mb-4 text-center">{error}</p>
+          )}
+
           {/* Botões */}
           <div className="flex gap-4 w-full">
             <button
               onClick={onClose}
-              className="flex-1 py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-white/5 transition-colors uppercase tracking-wider text-sm"
+              disabled={isPending}
+              className="flex-1 py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-white/5 transition-colors uppercase tracking-wider text-sm disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               onClick={handleSalvar}
-              disabled={rating === 0}
+              disabled={rating === 0 || isPending}
               className="flex-1 py-4 rounded-2xl bg-linear-to-r from-purple-600 to-blue-600 text-white font-bold hover:shadow-[0_0_20px_rgba(147,51,234,0.4)] transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none uppercase tracking-wider text-sm"
             >
-              Salvar
+              {isPending ? "Salvando..." : "Salvar"}
             </button>
           </div>
         </div>

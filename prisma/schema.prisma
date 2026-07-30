@@ -68,6 +68,9 @@ model User {
   favorites      Advertisement[] @relation(name: "FavoriteToUser")
   notifications  Notification[]
   refreshTokens  RefreshToken[]
+  passwordRecoveryRequests PasswordRecoveryRequest[]
+  sellerReviewsReceived SellerReview[] @relation("SellerReviewsReceived")
+  sellerReviewsGiven    SellerReview[] @relation("SellerReviewsGiven")
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -182,4 +185,29 @@ model RefreshToken {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model SellerReview {
+  id          Int      @id @default(autoincrement())
+  seller      User     @relation(name: "SellerReviewsReceived", fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId    Int
+  reviewer    User     @relation(name: "SellerReviewsGiven", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewerId  Int
+  rating      Int
+  comment     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PasswordRecoveryRequest {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
 }

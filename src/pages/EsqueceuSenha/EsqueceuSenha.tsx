@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import BotaoGenerico from '../../components/BotaoGenerico';
+import { trpc } from '../../lib/trpc';
 
 import './EsqueceuSenha.css';
 
@@ -11,6 +12,15 @@ const EsqueceuSenha: React.FC = () => {
   const [email, setEmail] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [erro, setErro] = useState('');
+
+  const requestResetMutation = trpc.auth.requestPasswordReset.useMutation({
+    onSuccess: () => {
+      setMensagem('Se o e-mail existir, enviaremos um link de recuperação.');
+    },
+    onError: () => {
+      setErro('Não foi possível enviar o link de recuperação. Tente novamente mais tarde.');
+    },
+  });
 
   const handleSubmit = async (
     event: React.FormEvent<HTMLFormElement>
@@ -25,17 +35,7 @@ const EsqueceuSenha: React.FC = () => {
       return;
     }
 
-    try {
-      // Aqui você chamará sua mutation futuramente
-
-      setMensagem(
-        'Se o e-mail existir, enviaremos um link de recuperação.'
-      );
-    } catch {
-      setErro(
-        'Não foi possível enviar o link de recuperação.'
-      );
-    }
+    requestResetMutation.mutate({ email });
   };
 
   return (
@@ -88,13 +88,14 @@ const EsqueceuSenha: React.FC = () => {
             />
 
             <div className="forgot-button-wrapper">
-            <BotaoGenerico
-              className="forgot-button-container"
-              buttonClassName="forgot-button"
-            >
-              Enviar link de recuperação
-            </BotaoGenerico>
-          </div>
+              <BotaoGenerico
+                className="forgot-button-container"
+                buttonClassName="forgot-button"
+                disabled={requestResetMutation.isPending}
+              >
+                {requestResetMutation.isPending ? 'Enviando...' : 'Enviar link de recuperação'}
+              </BotaoGenerico>
+            </div>
 
             {erro && (
               <p className="forgot-error">

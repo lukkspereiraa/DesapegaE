@@ -7,10 +7,6 @@ import {
 import type { LucideIcon } from 'lucide-react';
 
 const iconesOpcoes: Record<string, LucideIcon> = {
-  "Roupas": Shirt,
-  "Móveis": Armchair,
-  "Eletrônicos": Tv,
-  "Todos": LayoutGrid,
   "Novo": Sparkles,
   "Usado": History,
   "Seminovo": Clock,
@@ -75,6 +71,7 @@ interface ModalFiltrosProps {
   setFiltrosAtivos: React.Dispatch<React.SetStateAction<string[]>>;
   ordenacao: string;
   setOrdenacao: React.Dispatch<React.SetStateAction<string>>;
+  categorias: string[];
 }
 
 const ModalFiltros: React.FC<ModalFiltrosProps> = ({
@@ -84,6 +81,7 @@ const ModalFiltros: React.FC<ModalFiltrosProps> = ({
   setFiltrosAtivos,
   ordenacao,
   setOrdenacao,
+  categorias,
 }) => {
   if (!isOpen) return null;
 
@@ -113,7 +111,7 @@ const ModalFiltros: React.FC<ModalFiltrosProps> = ({
         <SecaoFiltro
           icone={Globe}
           titulo="Tipo de Coleção"
-          opcoes={["Roupas", "Móveis", "Eletrônicos", "Todos"]}
+          opcoes={categorias}
           filtrosAtivos={filtrosAtivos}
           onToggle={toggleFiltro}
         />
