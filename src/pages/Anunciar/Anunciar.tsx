@@ -19,7 +19,7 @@ const Anunciar: React.FC = () => {
 
   const [titulo, setTitulo] = useState('');
   const [valor, setValor] = useState('');
-  const [tipo, setTipo] = useState('Tecnologia');
+  const [tipo, setTipo] = useState('Roupas');;
   const [estado, setEstado] = useState('Seminovo');
   const [descricao, setDescricao] = useState('');
   
@@ -64,13 +64,11 @@ const Anunciar: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const categoryIdByName: Record<string, number> = {
-    Tecnologia: 1,
-    Roupas: 2,
-    Móveis: 3,
-    Eletrônicos: 4,
-    Moda: 2,
-    Games: 4,
-  };
+  Roupas: 2,
+  Móveis: 3,
+  Eletrônicos: 4,
+  Todos: 1,
+};
 
   const createProduct = trpc.product.create.useMutation({
     onSuccess: async () => {
@@ -463,23 +461,12 @@ const Anunciar: React.FC = () => {
         value={tipo}
         onChange={(e) => setTipo(e.target.value)}
       >
-        <option value="Tecnologia">
-          Tecnologia
-        </option>
-
-        <option value="Moda">
-          Moda
-        </option>
-
-        <option value="Games">
-          Games
-        </option>
-
-        <option value="Eletrônicos">
-          Eletrônicos
-        </option>
+        <option value="Roupas">Roupas</option>
+        <option value="Móveis">Móveis</option>
+        <option value="Eletrônicos">Eletrônicos</option>
+        <option value="Todos">Todos</option>
       </select>
-    </div>
+      </div>
 
     <div className="anunciar-group">
       <label>Estado</label>
