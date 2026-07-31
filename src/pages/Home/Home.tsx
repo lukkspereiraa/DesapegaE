@@ -27,10 +27,6 @@ const fallbackImage =
   'https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=400';
 
 const iconesFiltros: Record<string, LucideIcon> = {
-  Roupas: Shirt,
-  Móveis: Armchair,
-  Eletrônicos: Tv,
-  Todos: LayoutGrid,
   Novo: Sparkles,
   Usado: History,
   Seminovo: Clock,
@@ -80,6 +76,12 @@ const Home: React.FC = () => {
   const normalizedSearch = normalize(searchText);
 
   const productsQuery = trpc.product.listPublic.useQuery();
+  const categoriesQuery = trpc.product.listCategories.useQuery();
+
+  const categorias = useMemo(() => {
+    const nomes = categoriesQuery.data?.map((c) => c.name) ?? [];
+    return Array.from(new Set(nomes));
+  }, [categoriesQuery.data]);
 
   const produtos = useMemo<Produto[]>(() => {
     const ads = productsQuery.data ?? [];
@@ -97,7 +99,7 @@ const Home: React.FC = () => {
 
   const produtosFiltrados = useMemo(() => {
     const categoryFilters = filtrosAtivos.filter((filtro) =>
-      ['Roupas', 'Móveis', 'Eletrônicos', 'Todos'].includes(filtro)
+      categorias.includes(filtro)
     );
 
     const conditionFilters = filtrosAtivos.filter((filtro) =>
@@ -131,7 +133,7 @@ const Home: React.FC = () => {
     if (!matchSearch) return false;
   }
 
-  if (categoryFilters.length > 0 && !categoryFilters.includes('Todos')) {
+  if (categoryFilters.length > 0) {
     const produtoCategoria = normalize(produto.categoria);
 
     const matchCategoria = categoryFilters.some(
@@ -196,12 +198,13 @@ switch (ordenacao) {
     break;
 }
 
-return resultado;
+  return resultado;
 }, [
   filtrosAtivos,
   normalizedSearch,
   produtos,
-  ordenacao
+  ordenacao,
+  categorias
 ]);
 
 const removeFiltro = (filtro: string): void => {
@@ -226,6 +229,7 @@ const removeFiltro = (filtro: string): void => {
             setFiltrosAtivos={setFiltrosAtivos}
             ordenacao={ordenacao}
             setOrdenacao={setOrdenacao}
+            categorias={categorias}
           />
         </div>
 

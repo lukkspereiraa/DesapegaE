@@ -14,7 +14,7 @@ import './DetalheProduto.css';
 // ============================================================================
 // 🔧 CONTROLE DE MOCK: Mude para 'false' para usar os dados do banco real
 // ============================================================================
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 const MOCK_PRODUTO: {
   id: number;

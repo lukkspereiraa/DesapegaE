@@ -183,6 +183,12 @@ async function ensureImageBlobsExist(
 }
 
 export const productRouter = router({
+  listCategories: publicProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.category.findMany({
+      orderBy: { name: 'asc' }
+    });
+  }),
+
   listPublic: publicProcedure.input(publicListInputSchema).query(async ({ ctx, input }) => {
     const where: Prisma.AdvertisementWhereInput = {
       status: AdvertisementStatus.Open,

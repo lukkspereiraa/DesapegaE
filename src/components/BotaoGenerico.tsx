@@ -6,6 +6,7 @@ interface BotaoGenericoProps {
   className?: string;
   buttonClassName?: string;
   variant?: 'purple-blue' | 'blue-only';
+  disabled?: boolean;
 }
 
 const variants: Record<
@@ -27,6 +28,7 @@ const BotaoGenerico: React.FC<
   className = '',
   buttonClassName = '',
   variant = 'purple-blue',
+  disabled = false,
 }) => {
   return (
     <div
@@ -38,6 +40,7 @@ const BotaoGenerico: React.FC<
 
       <button
         onClick={onClick}
+        disabled={disabled}
         className={`relative 
           px-6 py-2.5
           rounded-full

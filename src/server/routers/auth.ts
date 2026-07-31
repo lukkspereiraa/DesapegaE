@@ -1,4 +1,6 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { RoleName, UserStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -25,6 +27,26 @@ const loginInputSchema = z.object({
 
 const refreshInputSchema = z.object({
   refreshToken: z.string().min(1),
+});
+
+const requestPasswordResetSchema = z.object({
+  email: z.string().trim().email().transform((value) => value.toLowerCase()),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(6).max(100),
+});
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || "localhost",
+  port: Number(process.env.SMTP_PORT) || 1025,
+  secure: process.env.SMTP_SECURE === "true",
+  auth: (process.env.SMTP_USER && process.env.SMTP_PASS) ? {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  } : undefined,
+  tls: { rejectUnauthorized: false }
 });
 
 export const authRouter = router({
@@ -149,5 +171,74 @@ export const authRouter = router({
     }
 
     return serializeUserProfile(user);
+  }),
+
+  requestPasswordReset: publicProcedure.input(requestPasswordResetSchema).mutation(async ({ ctx, input }) => {
+    const user = await ctx.prisma.user.findUnique({
+      where: { email: input.email },
+    });
+
+    if (!user) {
+      // For security, do not reveal whether the email exists
+      return { success: true };
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await ctx.prisma.passwordRecoveryRequest.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt,
+      },
+    });
+
+    const resetLink = `http://localhost:5173/reset-password?token=${token}`;
+
+    try {
+      await transporter.sendMail({
+        from: '"DesapegaE" <noreply@desapegae.com>',
+        to: user.email,
+        subject: "Redefinir sua senha",
+        html: `
+          <h3>Olá, ${user.name}</h3>
+          <p>Você solicitou a redefinição da sua senha.</p>
+          <p>Clique no link abaixo para criar uma nova senha:</p>
+          <a href="${resetLink}">${resetLink}</a>
+          <p>Se você não solicitou isso, ignore este e-mail.</p>
+        `,
+      });
+      console.log(`✅ E-mail de recuperação enviado para ${user.email} através do SMTP.`);
+    } catch (error) {
+      console.error("❌ Falha ao enviar e-mail pelo SMTP:", error);
+      console.log(`\n\n🔔 [FALLBACK] Como o SMTP falhou, aqui está o link de recuperação para você testar:\n👉 ${resetLink}\n\n`);
+    }
+
+    return { success: true };
+  }),
+
+  resetPassword: publicProcedure.input(resetPasswordSchema).mutation(async ({ ctx, input }) => {
+    const recoveryRequest = await ctx.prisma.passwordRecoveryRequest.findUnique({
+      where: { token: input.token },
+    });
+
+    if (!recoveryRequest || recoveryRequest.used || recoveryRequest.expiresAt < new Date()) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Token inválido ou expirado." });
+    }
+
+    const passwordHash = await bcrypt.hash(input.newPassword, 12);
+
+    await ctx.prisma.user.update({
+      where: { id: recoveryRequest.userId },
+      data: { password: passwordHash },
+    });
+
+    await ctx.prisma.passwordRecoveryRequest.update({
+      where: { id: recoveryRequest.id },
+      data: { used: true },
+    });
+
+    return { success: true };
   }),
 });

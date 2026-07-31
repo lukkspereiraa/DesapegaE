@@ -13,6 +13,7 @@ import DetalheProduto from './pages/DetalhesProduto/DetalheProduto';
 import Cadastro from './pages/Cadastro/Cadastro';
 import Login from './pages/Login/Login';
 import EsqueceuSenha from './pages/EsqueceuSenha/EsqueceuSenha';
+import RedefinirSenha from './pages/RedefinirSenha/RedefinirSenha';
 
 import Anunciar from './pages/Anunciar/Anunciar';
 import Perfil from './pages/Perfil/Perfil';
@@ -87,6 +88,11 @@ function App() {
         <Route
           path="/esqueceu-senha"
           element={<EsqueceuSenha />}
+        />
+
+        <Route
+          path="/reset-password"
+          element={<RedefinirSenha />}
         />
 
         {/* ROTAS PROTEGIDAS */}
