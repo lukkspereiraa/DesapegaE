@@ -73,11 +73,6 @@ const AcoesProduto: React.FC<AcoesProdutoProps> = ({ productId, isFavorited = fa
         </span>
       </button>
 
-      {/* DENUNCIAR */}
-      <button className="mt-2 text-[10px] font-black uppercase tracking-widest text-red-600/80 hover:text-red-500 transition-colors cursor-pointer text-center w-full">
-        Denunciar Anúncio
-      </button>
-
     </div>
   );
 };

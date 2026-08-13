@@ -97,6 +97,34 @@ const UserAvatar: React.FC = () => {
             Entrar no perfil
           </button>
 
+          {/* MEUS FAVORITOS */}
+          <button
+            onClick={() => {
+              setOpen(false);
+              navigate('/favoritos');
+            }}
+            className="w-full h-12 rounded-xl border border-white/20
+            bg-[#151747] text-white font-black text-sm
+            hover:bg-white/10 transition-all mb-3 text-left px-5 flex items-center justify-between"
+          >
+            <span>Meus favoritos</span>
+          </button>
+
+          {/* PAINEL ADMIN */}
+          {user?.role === 'Admin' && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                navigate('/admin');
+              }}
+              className="w-full h-12 rounded-xl border border-red-500/30
+              bg-red-900/40 text-white font-black text-sm
+              hover:bg-red-800/60 transition-all mb-3 text-left px-5 flex items-center justify-between"
+            >
+              <span className="text-red-300">Painel Admin</span>
+            </button>
+          )}
+
           {/* CONFIGURAÇÕES */}
           <button
             onClick={() => alert('Configurações simuladas')}

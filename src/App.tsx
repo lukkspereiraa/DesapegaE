@@ -17,6 +17,8 @@ import RedefinirSenha from './pages/RedefinirSenha/RedefinirSenha';
 
 import Anunciar from './pages/Anunciar/Anunciar';
 import Perfil from './pages/Perfil/Perfil';
+import Favoritos from './pages/Favoritos/Favoritos';
+import AdminPanel from './pages/Admin/AdminPanel';
 import EditarPerfil from './pages/EditarPerfil/EditarPerfil';
 import EditarProduto from './pages/EditarProduto/EditarProduto';
 import DadosPrivados from './pages/DadosPrivados/DadosPrivados';
@@ -96,6 +98,24 @@ function App() {
         />
 
         {/* ROTAS PROTEGIDAS */}
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth>
+              <AdminPanel />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/favoritos"
+          element={
+            <RequireAuth>
+              <MainLayout>
+                <Favoritos />
+              </MainLayout>
+            </RequireAuth>
+          }
+        />
         <Route
           path="/anunciar"
           element={

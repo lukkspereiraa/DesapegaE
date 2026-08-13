@@ -64,7 +64,8 @@ model User {
   roleId         Int?
   advertisements Advertisement[] @relation("AdvertisementToUser")
   reviews        Review[]
-  complaints     Complaint[]
+  complaintsMade Complaint[] @relation("ComplaintsMade")
+  complaintsReceived Complaint[] @relation("ComplaintsReceived")
   favorites      Advertisement[] @relation(name: "FavoriteToUser")
   notifications  Notification[]
   refreshTokens  RefreshToken[]
@@ -150,11 +151,22 @@ model Review {
 
 model Complaint {
   id              Int           @id @default(autoincrement())
-  advertisement   Advertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
-  advertisementId Int
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Quem fez a denúncia
+  user            User          @relation("ComplaintsMade", fields: [userId], references: [id], onDelete: Cascade)
   userId          Int
+
+  // O alvo da denúncia (um dos dois deve estar preenchido)
+  advertisement   Advertisement? @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
+  advertisementId Int?
+  
+  targetUser      User?          @relation("ComplaintsReceived", fields: [targetUserId], references: [id], onDelete: Cascade)
+  targetUserId    Int?
+
+  category        String        @default("Outro")
   reason          String
+  seen            Boolean       @default(false)
+  
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }

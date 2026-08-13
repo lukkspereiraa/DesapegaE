@@ -7,6 +7,7 @@ import {
 import { trpc } from '../../lib/trpc';
 import ModalAvaliacao from './ModalAvaliacao';
 import ModalAnuncios from './ModalAnuncios';
+import ReportModal from '../../components/ReportModal';
 
 const Vendedor: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ const Vendedor: React.FC = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAdsModalOpen, setIsAdsModalOpen] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [reviewsVisibleCount, setReviewsVisibleCount] = useState(3);
 
     const vendedorId = Number(id);
@@ -167,7 +169,10 @@ const Vendedor: React.FC = () => {
                             >
                                 <MessageCircle size={18} /> Enviar Mensagem
                             </button>
-                            <button className="w-full text-white/30 text-xs font-bold hover:text-white/60 transition-colors flex items-center justify-center gap-1.5">
+                            <button 
+                                onClick={() => setIsReportModalOpen(true)}
+                                className="w-full text-white/30 text-xs font-bold hover:text-white/60 transition-colors flex items-center justify-center gap-1.5"
+                            >
                                 <Flag size={12} /> Denunciar perfil
                             </button>
 
@@ -303,6 +308,12 @@ const Vendedor: React.FC = () => {
                 vendedorNome={vendedor.name}
             />
 
+            <ReportModal
+                isOpen={isReportModalOpen}
+                onClose={() => setIsReportModalOpen(false)}
+                targetId={vendedor.id}
+                type="USER"
+            />
         </div>
     );
 };

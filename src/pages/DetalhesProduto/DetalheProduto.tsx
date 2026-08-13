@@ -8,6 +8,8 @@ import CardVendedor from '../../components/detalhes/CardVendedor';
 import AcoesProduto from '../../components/detalhes/AcoesProduto';
 
 import { trpc } from '../../lib/trpc';
+import ReportModal from '../../components/ReportModal';
+import { Flag } from 'lucide-react';
 
 import './DetalheProduto.css';
 
@@ -116,6 +118,7 @@ const formatLocation = (ad: {
 const DetalheProduto: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [isReportModalOpen, setIsReportModalOpen] = React.useState(false);
 
   const productId = Number(id);
   const hasValidId = Number.isInteger(productId) && productId > 0;
@@ -211,10 +214,25 @@ const DetalheProduto: React.FC = () => {
 
             <div className="detalhe-acoes-wrapper">
               <AcoesProduto productId={produto.id} isFavorited={produto.isFavorited} />
+              
+              <button 
+                onClick={() => setIsReportModalOpen(true)}
+                className="mt-6 w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-500/20 text-red-500 font-bold hover:bg-red-500/10 transition-colors"
+              >
+                <Flag size={18} />
+                Denunciar Anúncio
+              </button>
             </div>
           </div>
         </div>
       </div>
+      
+      <ReportModal 
+        isOpen={isReportModalOpen} 
+        onClose={() => setIsReportModalOpen(false)} 
+        targetId={produto.id} 
+        type="AD" 
+      />
     </div>
   );
 };
