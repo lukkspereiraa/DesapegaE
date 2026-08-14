@@ -237,6 +237,23 @@ export const productRouter = router({
     }));
   }),
 
+  listFavorites: protectedProcedure.query(async ({ ctx }) => {
+    const ads = await ctx.prisma.advertisement.findMany({
+      where: {
+        favoritedBy: {
+          some: { id: ctx.user.id },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      select: advertisementSelect,
+    });
+
+    return ads.map((ad) => ({
+      ...serializeAdvertisement(ad),
+      isFavorited: true, // by definition, they are favorited
+    }));
+  }),
+
   byId: publicProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ ctx, input }) => {
     const ad = await ctx.prisma.advertisement.findFirst({
       where: {

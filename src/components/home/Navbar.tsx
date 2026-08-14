@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import BrandLogo from './Logo';
 import BotaoGenerico from '../BotaoGenerico';
 import UserAvatar from '../UserAvatar';
@@ -66,7 +66,9 @@ const Navbar: React.FC = () => {
                     shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
 
       <div className="shrink-0">
-        <BrandLogo cidade="Cedro" />
+        <Link to="/" className="block hover:opacity-80 transition-opacity">
+          <BrandLogo cidade="Cedro" />
+        </Link>
       </div>
 
       <div className="flex-1 flex justify-center max-w-2xl px-8">
