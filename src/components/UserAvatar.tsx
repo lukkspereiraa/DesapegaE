@@ -125,15 +125,6 @@ const UserAvatar: React.FC = () => {
             </button>
           )}
 
-          {/* CONFIGURAÇÕES */}
-          <button
-            onClick={() => alert('Configurações simuladas')}
-            className="w-full h-12 rounded-xl border border-white/20
-            bg-[#151747] text-white font-black text-sm
-            hover:bg-white/10 transition-all mb-3 text-left px-5"
-          >
-            Configurações
-          </button>
 
 
           {/* SAIR */}
