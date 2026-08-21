@@ -53,44 +53,96 @@ const Navbar: React.FC = () => {
       nextParams.set('q', trimmed);
     }
 
-    navigate({ pathname: '/', search: nextParams.toString() });
+    navigate({
+      pathname: '/',
+      search: nextParams.toString(),
+    });
   };
 
   return (
-    <nav className="w-full h-20 
-                    bg-[#0a0a1a]/95 backdrop-blur-xl
-                    px-10 
-                    border-b border-liquid-purple/15
-                    sticky top-0 z-100 
-                    flex items-center justify-between
-                    shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+    <nav
+      className="
+        w-full
+        bg-[#0a0a1a]/95
+        backdrop-blur-xl
+        border-b border-liquid-purple/15
+        sticky top-0 z-[100]
+        shadow-[0_8px_32px_rgba(0,0,0,0.4)]
+        px-4 sm:px-6 lg:px-10
+        py-3 lg:py-0
+      "
+    >
+      <div
+        className="
+          min-h-20
+          flex flex-wrap
+          items-center
+          justify-between
+          gap-y-3
+          lg:flex-nowrap
+        "
+      >
+        {/* LOGO */}
+        <div className="shrink-0">
+          <Link
+            to="/"
+            className="block hover:opacity-80 transition-opacity"
+          >
+            <BrandLogo cidade="Cedro" />
+          </Link>
+        </div>
 
-      <div className="shrink-0">
-        <Link to="/" className="block hover:opacity-80 transition-opacity">
-          <BrandLogo cidade="Cedro" />
-        </Link>
-      </div>
+        {/* BARRA DE PESQUISA */}
+        <div
+          className="
+            order-3
+            basis-full
+            lg:order-2
+            lg:basis-auto
+            lg:flex-1
+            lg:px-8
+            flex
+            justify-center
+          "
+        >
+          <div className="w-full max-w-2xl">
+            <BarraPesquisa
+              value={searchValue}
+              onChange={handleSearchChange}
+              onSubmit={handleSearchSubmit}
+            />
+          </div>
+        </div>
 
-      <div className="flex-1 flex justify-center max-w-2xl px-8">
-        <BarraPesquisa
-          value={searchValue}
-          onChange={handleSearchChange}
-          onSubmit={handleSearchSubmit}
-        />
-      </div>
+        {/* AÇÕES */}
+        <div
+          className="
+            order-2
+            flex
+            items-center
+            gap-2 sm:gap-4
+            shrink-0
+            lg:order-3
+          "
+        >
+          <BotaoGenerico onClick={handleAnunciar}>
+            <span className="hidden sm:inline">
+              Anunciar agora
+            </span>
 
-      <div className="flex items-center gap-4 shrink-0">
-        <BotaoGenerico onClick={handleAnunciar}>
-          Anunciar agora
-        </BotaoGenerico>
-
-        {!user && (
-          <BotaoGenerico onClick={() => navigate('/login')}>
-            Entrar
+            <span className="sm:hidden">
+              Anunciar
+            </span>
           </BotaoGenerico>
-        )}
 
-        {user && <UserAvatar />}
+          {!user && (
+            <BotaoGenerico onClick={() => navigate('/login')}>
+              Entrar
+            </BotaoGenerico>
+          )}
+
+          {user && <UserAvatar />}
+        </div>
       </div>
     </nav>
   );
