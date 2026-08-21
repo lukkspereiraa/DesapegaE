@@ -135,27 +135,6 @@ const UserAvatar: React.FC = () => {
             Configurações
           </button>
 
-          {/* MUDAR TEMA */}
-          <div
-            className="w-full h-12 rounded-xl border border-white/20
-            bg-[#151747] text-white font-black text-sm
-            flex items-center justify-between px-5 mb-4"
-          >
-            <span>Mudar tema</span>
-
-            <button
-              onClick={() => setTemaClaro(!temaClaro)}
-              className={`w-12 h-6 rounded-full p-1 transition-all ${
-                temaClaro ? 'bg-electric-blue' : 'bg-white/20'
-              }`}
-            >
-              <div
-                className={`w-4 h-4 rounded-full bg-white transition-all ${
-                  temaClaro ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
 
           {/* SAIR */}
           <button
